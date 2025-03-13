@@ -1,50 +1,138 @@
-# Welcome to your Expo app 👋
+# 📌 Hướng dẫn cài đặt & chạy dự án Food Recommendation App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+## **1️⃣ Các phần mềm cần cài đặt trước khi clone dự án**
+Trước khi chạy dự án, cần cài đặt các phần mềm sau:
 
-## Get started
+### **🔹 PostgreSQL (Cơ sở dữ liệu quan hệ - RDBMS)**
+✅ **Tải PostgreSQL** tại: [https://www.postgresql.org/download/](https://www.postgresql.org/download/)  
+✅ **Phiên bản khuyến nghị:** PostgreSQL **15+**  
+✅ **Cài đặt pgAdmin** (nếu muốn quản lý database bằng giao diện đồ họa).  
 
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-    npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
+### **🔹 Node.js (Chạy React Native - Expo)**
+✅ **Tải Node.js** tại: [https://nodejs.org/en/download](https://nodejs.org/en/download)  
+✅ **Phiên bản khuyến nghị:** Node.js **18+** (LTS)  
+✅ **Kiểm tra sau khi cài đặt:**
 ```bash
-npm run reset-project
+node -v   # Kiểm tra phiên bản Node.js
+npm -v    # Kiểm tra phiên bản npm
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### **🔹 Python (Chạy Flask Backend)**
+✅ **Tải Python** tại: [https://www.python.org/downloads/](https://www.python.org/downloads/)  
+✅ **Phiên bản khuyến nghị:** Python **3.9+**  
+✅ **Kiểm tra sau khi cài đặt:**
+```bash
+python --version   # Kiểm tra phiên bản Python
+pip --version      # Kiểm tra phiên bản pip
+```
 
-## Learn more
+### **🔹 Concurrently (Chạy cả React Native & Flask cùng lúc)**
+✅ **Cài đặt Concurrently (Toàn cầu)**:
+```bash
+npm install -g concurrently
+```
+✅ **Kiểm tra sau khi cài đặt:**
+```bash
+concurrently --version
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+---
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## **2️⃣ Clone & Cài đặt dự án**
+### **🔹 Clone dự án từ GitHub**
+```bash
+git clone https://github.com/your-repo/food-recommendation-app.git
+cd food-recommendation-app
+```
 
-## Join the community
+### **🔹 Cài đặt thư viện cho frontend (React Native - Expo)**
+```bash
+cd frontend
+npm install
+```
 
-Join our community of developers creating universal apps.
+### **🔹 Cài đặt thư viện cho backend (Flask & PostgreSQL)**
+```bash
+cd ../backend
+pip install -r requirements.txt
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+---
+
+## **3️⃣ Khởi tạo PostgreSQL Database**
+📌 **Mở PostgreSQL Shell và tạo database**:
+```sql
+CREATE DATABASE food_recommendation_db;
+```
+
+📌 **Kiểm tra database đã tạo thành công chưa:**
+```sql
+\l
+```
+
+📌 **Thoát PostgreSQL Shell:**
+```sql
+\q
+```
+
+📌 **Khởi tạo bảng trong PostgreSQL bằng Flask**
+```bash
+cd backend
+python database/db_init.py
+```
+
+✅ **Sau khi chạy, PostgreSQL đã sẵn sàng!**
+
+---
+
+## **4️⃣ Chạy dự án (React Native + Flask đồng thời)**
+📌 **Chạy toàn bộ dự án bằng 1 lệnh:**
+```bash
+cd food-recommendation-app
+npm start
+```
+
+📌 **Cách hoạt động:**
+- **React Native (Expo) chạy trên cổng 19000+**
+- **Flask API chạy trên cổng 5000**
+
+✅ **Truy cập API Flask kiểm tra:**
+```bash
+http://127.0.0.1:5000/get-foods
+http://127.0.0.1:5000/get-nutrient-effectiveness
+```
+
+✅ **Chạy ứng dụng trên điện thoại hoặc trình giả lập:**
+- Android: `npx expo run:android`
+- iOS: `npx expo run:ios`
+- Web: `npx expo run:web`
+
+---
+
+## **5️⃣ Các thư viện quan trọng được sử dụng**
+
+### **🔹 Frontend (React Native - Expo)**
+- `expo`
+- `react-navigation`
+- `styled-components`
+- `axios` (Gọi API Flask)
+- `expo-camera`, `expo-image-picker`
+
+### **🔹 Backend (Flask & PostgreSQL)**
+- `Flask`
+- `Flask-SQLAlchemy` (Kết nối PostgreSQL)
+- `Pandas` (Đọc file CSV)
+- `Psycopg2` (Driver PostgreSQL)
+
+---
+
+## **6️⃣ Cấu trúc thư mục dự án**
+```
+/food-recommendation-app  # 🏠 Root project
+│── /frontend             # 📱 React Native (Expo)
+│── /backend              # 🖥️ Flask API + AI Model + PostgreSQL
+│── package.json          # ✅ Chạy cả frontend & backend
+│── README.md             # 📜 Hướng dẫn sử dụng
+```
+
+📢 **Sau khi làm theo hướng dẫn trên, dự án đã sẵn sàng chạy!** 🚀
