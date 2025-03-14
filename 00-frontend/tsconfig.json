@@ -13,5 +13,5 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
-, "src/components/rowBack.js", "src/components/rowHome.js"  ]
+, "src/components/rowBack.tsx", "src/components/rowHome.tsx", "src/components/option.js"  ]
 }

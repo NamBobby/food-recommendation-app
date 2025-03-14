@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
     marginBottom: 10
   },
   
-  khung: {
+  frame: {
     borderWidth: 3,
     borderColor: '#FFB3C6',
     backgroundColor: '#FFFFFF',
@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  textkhung: {
+  textframe: {
     display: "flex",
     alignItems: "flex-end",
     color: "#6ea9f7",

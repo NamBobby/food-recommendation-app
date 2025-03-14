@@ -6,9 +6,9 @@ import Home from "../views/homePage/homePage";
 import FoodList from "../views/foodListPage/foodList";
 import Login from "../views/authPage/login";
 import Register from "../views/authPage/register";
-import Shooting from "../views/shootingPage/shooting";
-import Result from "../views/resultPage/result";
-import Tracking from "../views/trackingPage/tracking";
+import Shooting from "../views/shootingPage/shootingPage";
+import Result from "../views/shootingPage/resultPage";
+import Tracking from "../views/trackingPage/trackingPage";
 
 export type RootStackParamList = {
     Login: undefined;
