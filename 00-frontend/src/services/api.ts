@@ -1,11 +1,10 @@
-//export const API_URL = "http://10.0.2.2:5000"; // Nếu dùng Android Emulator
-// export const API_URL = "http://localhost:5000"; // Nếu chạy trên Web
 import axios from "axios";
 import { API_URL } from "../../config"; 
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const apiClient = axios.create({
   baseURL: API_URL,
-  timeout: 10000, // 🟢 Tăng timeout lên 10 giây để tránh lỗi `timeout exceeded`
+  timeout: 10000, 
 }); 
 
 export const fetchFoods = async () => {
@@ -55,6 +54,35 @@ export const loginUser = async (email: string, password: string) => {
     return response.data;
   } catch (error: any) {
     console.error("❌ Login API Error:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+// 🟢 Hàm gửi ảnh đến backend để nhận diện cảm xúc
+export const detectEmotion = async (imageUri: string) => {
+  try {
+    const formData = new FormData();
+    formData.append("file", {
+      uri: imageUri,
+      name: "photo.jpg",
+      type: "image/jpeg",
+    } as any);
+
+    const response = await fetch(`${API_URL}/detect-emotion`, {
+      method: "POST",
+      body: formData,
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    const data = await response.json();
+    if (response.ok) {
+      await AsyncStorage.setItem("emotion", data.emotion); // Lưu cảm xúc vào AsyncStorage
+      return data.emotion;
+    } else {
+      throw new Error(data.error || "Failed to process image.");
+    }
+  } catch (error) {
+    console.error("❌ Error sending image:", error);
     throw error;
   }
 };
