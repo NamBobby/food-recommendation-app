@@ -99,6 +99,20 @@ const RegisterStyle = StyleSheet.create({
     width: 25,
     height: 25,
   },
+  dateContainer: {
+    width: "90%",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 10,
+  },
+  dropdown: {
+    width: "30%",
+    zIndex: 1000, 
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    backgroundColor: "#FFF",
+  },
 });
 
 export default RegisterStyle;

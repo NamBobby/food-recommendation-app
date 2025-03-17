@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from config import Config
+from database.config import Config
+from werkzeug.security import generate_password_hash
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -34,7 +35,41 @@ class NutrientEffectiveness(db.Model):
     linked_emotion = db.Column(db.String(50))
     effectiveness = db.Column(db.Text)
 
+def seed_default_users():
+    """Thêm tài khoản mặc định nếu chưa tồn tại"""
+    admin_email = "admin@example.com"
+    user_email = "user@example.com"
+
+    admin = User.query.filter_by(email=admin_email).first()
+    user = User.query.filter_by(email=user_email).first()
+
+    if not admin:
+        admin_password_hash = generate_password_hash("admin123", method="pbkdf2:sha256")  
+        new_admin = User(
+            name="Admin",
+            email=admin_email,
+            password_hash=admin_password_hash,
+            role="admin",
+            date_of_birth="1990-01-01"
+        )
+        db.session.add(new_admin)
+
+    if not user:
+        user_password_hash = generate_password_hash("123456", method="pbkdf2:sha256") 
+        new_user = User(
+            name="User",
+            email=user_email,
+            password_hash=user_password_hash,
+            role="user",
+            date_of_birth="2000-01-01"
+        )
+        db.session.add(new_user)
+
+    db.session.commit()
+    print("✅ Default Admin & User accounts added!")
+
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
+        seed_default_users()
         print("✅ Database & Tables Created Successfully!")

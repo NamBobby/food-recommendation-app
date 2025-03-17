@@ -41,7 +41,9 @@ const Home = () => {
           <Text style={styles.textframe}>C & Y</Text>
         </View>
         <View style={styles.buttonmenu}>
-          <Option onPressShooting={navigateToShooting} onPressTracking={navigateToTracking} />
+          <Option 
+            onPressShooting={navigateToShooting} 
+            onPressTracking={navigateToTracking} />
         </View>
       </View>
     </View>

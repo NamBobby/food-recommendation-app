@@ -4,8 +4,10 @@ import LoginStyle from "../../styles/loginStyle";
 import { useNavigation } from "@react-navigation/native";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { StackNavigationProp } from "@react-navigation/stack";
-
+import { loginUser } from "../../services/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { RootStackParamList } from "../../navigations/AppNavigator";
+
 type NavigationProps = StackNavigationProp<RootStackParamList, "Login">;
 
 const Login = () => {
@@ -15,12 +17,30 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   const handleSignIn = async () => {
-    if (email === "" || password === "") {
+    if (!email || !password) {
       Alert.alert("Alert", "Please fill in all information.");
       return;
     }
-    // TODO: Thêm logic kiểm tra tài khoản
-    navigation.navigate("Home");
+
+    try {
+      const response = await loginUser(email, password);
+      console.log("✅ Login Success:", response);
+  
+      // 🟢 Kiểm tra nếu `token` tồn tại trước khi lưu
+      if (response.token) {
+        await AsyncStorage.setItem("token", response.token);
+      } else {
+        console.warn("⚠️ No token received from API.");
+      }
+  
+      await AsyncStorage.setItem("user", JSON.stringify(response.user));
+  
+      Alert.alert("Success", "Login successful!");
+      navigation.navigate("Home"); // 🟢 Chuyển đến trang Home
+    } catch (error: any) {
+      console.error("❌ Login Error:", error.message);
+      Alert.alert("Error", error.response?.data?.error || "Invalid email or password.");
+    }
   };
 
   return (
