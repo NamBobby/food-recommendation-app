@@ -9,6 +9,8 @@ import Register from "../views/authPage/register";
 import Shooting from "../views/shootingPage/shootingPage";
 import Result from "../views/shootingPage/resultPage";
 import Tracking from "../views/trackingPage/trackingPage";
+import ChoosingPref from "../views/recommendPage/choosingPref";
+import ResultFood from "../views/recommendPage/resultFood";
 
 export type RootStackParamList = {
     Login: undefined;
@@ -18,9 +20,11 @@ export type RootStackParamList = {
     Shooting: undefined;
     Result: undefined;
     Tracking: undefined;
-  };
+    ChoosingPref: undefined;
+    ResultFood: undefined;
+};
 
-  const Stack = createStackNavigator<RootStackParamList>();
+const Stack = createStackNavigator<RootStackParamList>();
 
 export default function AppNavigator(): React.ReactElement {
     return (
@@ -33,6 +37,8 @@ export default function AppNavigator(): React.ReactElement {
                 <Stack.Screen name="Shooting" component={Shooting} />
                 <Stack.Screen name="Result" component={Result} />
                 <Stack.Screen name="Tracking" component={Tracking} />
+                <Stack.Screen name="ChoosingPref" component={ChoosingPref} />
+                <Stack.Screen name="ResultFood" component={ResultFood} />
             </Stack.Navigator>
         </NavigationContainer>
     );

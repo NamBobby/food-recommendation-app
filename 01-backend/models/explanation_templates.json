@@ -1,0 +1,38 @@
+{
+    "emotions": {
+      "happy": [
+        "When you're feeling happy, your body is more responsive to nutritious foods that maintain this positive state.",
+        "Happiness increases the effectiveness of certain nutrients that promote brain health and cognitive function."
+      ],
+      "sad": [
+        "When feeling sad, your body often craves foods that boost serotonin production.",
+        "Sadness can be influenced by nutrition, with certain foods helping to improve your emotional balance."
+      ],
+      "angry": [
+        "Anger often corresponds with stress hormones that can be regulated through specific nutrients.",
+        "When feeling angry, certain nutrients can help calm your nervous system and reduce irritability."
+      ],
+      "neutral": [
+        "A neutral mood is a great baseline for trying foods that optimize overall cognitive function.",
+        "Maintaining emotional balance can be supported by a well-rounded nutritional profile."
+      ],
+      "surprise": [
+        "The heightened alertness from surprise can be supported by foods that help sustain attention and focus.",
+        "Surprising moments cause your body to release adrenaline, and certain nutrients can help your body process this."
+      ],
+      "fear": [
+        "Fear activates your flight-or-fight response, which depletes certain nutrients that can be replenished through food.",
+        "When experiencing fear, your body benefits from foods that help regulate stress hormones."
+      ],
+      "disgust": [
+        "Feelings of disgust can sometimes affect appetite, but certain foods can help rebalance your system.",
+        "Disgust can trigger digestive responses that calm down with specific nutrients."
+      ]
+    },
+    "food_recommendations": [
+      "{food_name} is an excellent choice for your {emotion} mood because it contains {nutrients} that help support emotional balance.",
+      "This {food_type} contains a balanced profile of {nutrients}, which can be particularly beneficial when you're feeling {emotion}.",
+      "The {nutrients} in this {food_type} may help regulate neurotransmitters related to your current {emotion} mood.",
+      "Research suggests that the {nutrients} found in {food_name} can help optimize brain function when experiencing {emotion} emotions."
+    ]
+  }

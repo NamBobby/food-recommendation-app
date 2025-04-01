@@ -23,6 +23,26 @@
           "Protein provides amino acids that are essential for producing mood-regulating neurotransmitters.",
           "A steady supply of protein helps maintain stable blood sugar and sustained energy, supporting a positive mood."
         ]
+      },
+      "angry": {
+        "Magnesium": [
+          "Magnesium has a calming effect on the nervous system and can help reduce irritability.",
+          "This mineral helps regulate the body's stress-response system, which can be activated during anger."
+        ],
+        "Vitamin C": [
+          "Vitamin C helps reduce stress hormones that may be elevated when angry.",
+          "This antioxidant protects the body from stress-related damage during heightened emotions."
+        ]
+      },
+      "neutral": {
+        "B Vitamins": [
+          "B vitamins support overall brain health and cognitive function for maintaining a balanced mood.",
+          "These vitamins play crucial roles in energy production, helping maintain consistent energy levels."
+        ],
+        "Zinc": [
+          "Zinc supports overall cognitive function and emotional regulation.",
+          "This mineral is important for neurotransmitter production that helps maintain emotional balance."
+        ]
       }
     },
     "nutrients": {

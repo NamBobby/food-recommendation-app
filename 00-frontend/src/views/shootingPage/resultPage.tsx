@@ -49,6 +49,10 @@ const Result: React.FC = () => {
         return "#805AE3"; // Purple
       case "surprise":
         return "#FFA500"; // Orange
+      case "fear":
+        return "#9932CC"; // Dark Orchid
+      case "disgust":
+        return "#8B4513"; // Saddle Brown
       default:
         return "#D1D1D1"; // Default gray
     }
@@ -56,6 +60,11 @@ const Result: React.FC = () => {
 
   const handleHome = () => {
     navigation.navigate("Home");
+  };
+  
+  // Add function to navigate to food recommendation
+  const handleStartRecommend = () => {
+    navigation.navigate("ChoosingPref");
   };
 
   return (
@@ -109,6 +118,26 @@ const Result: React.FC = () => {
             </View>
           )}
         </View>
+        
+        {/* Add Start Recommendation button */}
+        {!scanning && emotion && (
+          <TouchableOpacity
+            style={{
+              backgroundColor: getCircleColor(),
+              paddingVertical: 12,
+              paddingHorizontal: 20,
+              borderRadius: 8,
+              marginTop: 20,
+              alignSelf: "center",
+              elevation: 2,
+            }}
+            onPress={handleStartRecommend}
+          >
+            <Text style={{ color: "white", fontWeight: "bold", fontSize: 16 }}>
+              Start Recommendation
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );

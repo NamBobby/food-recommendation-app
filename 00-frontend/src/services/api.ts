@@ -1,38 +1,74 @@
 import axios from "axios";
-import { API_URL } from "../../config"; 
+import { API_URL, API_TIMEOUT } from "../../config"; 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+// Main API client for all requests
 export const apiClient = axios.create({
   baseURL: API_URL,
-  timeout: 10000, 
+  timeout: API_TIMEOUT, 
 }); 
 
-export const fetchFoods = async () => {
+// Add JWT token to requests if available
+apiClient.interceptors.request.use(
+  async (config) => {
+    const token = await AsyncStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Log all responses in development mode
+apiClient.interceptors.response.use(
+  (response) => {
+    console.log(`✅ [${response.config.method?.toUpperCase()}] ${response.config.url}: ${response.status}`);
+    return response;
+  },
+  (error) => {
+    console.error(`❌ [${error.config?.method?.toUpperCase()}] ${error.config?.url}: ${error.response?.status} - ${error.response?.data?.error || error.message}`);
+    return Promise.reject(error);
+  }
+);
+
+// Food API endpoints
+// Function to fetch available nutrients
+export const fetchAvailableNutrients = async () => {
   try {
-    const response = await fetch(`${API_URL}/get-foods`);
-    if (!response.ok) throw new Error("Failed to fetch foods");
-    return await response.json();
+    const response = await apiClient.get("/api/food/get-nutrients");
+    
+    // Check the structure of the response and return the nutrients
+    if (response.data && response.data.nutrients) {
+      return response.data.nutrients;
+    } else if (Array.isArray(response.data)) {
+      return response.data;
+    } else {
+      console.warn("⚠️ Unexpected API response format for nutrients");
+      return [];
+    }
   } catch (error) {
-    console.error("Error fetching foods:", error);
+    console.error("❌ Error fetching available nutrients:", error);
     return [];
+  }
+}
+
+export const fetchFoodTypes = async () => {
+  try {
+    const response = await apiClient.get("/api/food/get-food-types");
+    return response.data.food_types;
+  } catch (error) {
+    console.error("Error fetching food types:", error);
+    return ["dessert", "drink", "cake", "sweet"]; 
   }
 };
 
-export const fetchNutrientEffectiveness = async () => {
-  try {
-    const response = await fetch(`${API_URL}/get-nutrient-effectiveness`);
-    if (!response.ok) throw new Error("Failed to fetch nutrient effectiveness");
-    return await response.json();
-  } catch (error) {
-    console.error("Error fetching nutrient effectiveness:", error);
-    return [];
-  }
-};
-
+// Auth API endpoints
 export const registerUser = async (name: string, email: string, password: string, day: number, month: number, year: number) => {
   try {
-    console.log("🔗 Register API Call:", API_URL); // 🟢 Debug kiểm tra API URL
-    const response = await apiClient.post("/register", {
+    const response = await apiClient.post("/api/auth/register", {
       name,
       email,
       password,
@@ -50,7 +86,13 @@ export const registerUser = async (name: string, email: string, password: string
 
 export const loginUser = async (email: string, password: string) => {
   try {
-    const response = await axios.post(`${API_URL}/login`, { email, password });
+    const response = await apiClient.post("/api/auth/login", { email, password });
+    
+    // Save JWT token to AsyncStorage
+    if (response.data.token) {
+      await AsyncStorage.setItem("token", response.data.token);
+    }
+    
     return response.data;
   } catch (error: any) {
     console.error("❌ Login API Error:", error.response?.data || error.message);
@@ -58,7 +100,7 @@ export const loginUser = async (email: string, password: string) => {
   }
 };
 
-// 🟢 Hàm gửi ảnh đến backend để nhận diện cảm xúc
+// Emotion API endpoints
 export const detectEmotion = async (imageUri: string) => {
   try {
     const formData = new FormData();
@@ -68,7 +110,7 @@ export const detectEmotion = async (imageUri: string) => {
       type: "image/jpeg",
     } as any);
 
-    const response = await fetch(`${API_URL}/detect-emotion`, {
+    const response = await fetch(`${API_URL}/api/emotion/detect-emotion`, {
       method: "POST",
       body: formData,
       headers: { "Content-Type": "multipart/form-data" },
@@ -76,13 +118,60 @@ export const detectEmotion = async (imageUri: string) => {
 
     const data = await response.json();
     if (response.ok) {
-      await AsyncStorage.setItem("emotion", data.emotion); // Lưu cảm xúc vào AsyncStorage
+      await AsyncStorage.setItem("emotion", data.emotion); // Save emotion to AsyncStorage
       return data.emotion;
     } else {
       throw new Error(data.error || "Failed to process image.");
     }
   } catch (error) {
     console.error("❌ Error sending image:", error);
+    throw error;
+  }
+};
+
+// Food recommendation API endpoints
+export const getFoodRecommendations = async (emotion: string, foodType: string, desiredNutrient: string) => {
+  try {
+    const response = await apiClient.post("/api/food/recommend-food", {
+      emotion,
+      food_type: foodType,
+      desired_nutrient: desiredNutrient
+    });
+    
+    return response.data;
+  } catch (error: any) {
+    console.error("❌ Recommendation API Error:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+// Explanation API endpoints
+export const getFoodExplanation = async (recommendation: any, emotion: string, desiredNutrient: string) => {
+  try {
+    const response = await apiClient.post("/api/explanation/explain-recommendation", {
+      recommendation,
+      emotion,
+      desired_nutrient: desiredNutrient
+    });
+    
+    return response.data.explanation;
+  } catch (error: any) {
+    console.error("❌ Explanation API Error:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+// Food selection API endpoint
+export const selectFood = async (logId: number, chosenFood: string) => {
+  try {
+    const response = await apiClient.post("/api/food/select-food", {
+      log_id: logId,
+      chosen_food: chosenFood
+    });
+    
+    return response.data;
+  } catch (error: any) {
+    console.error("❌ Food Selection API Error:", error.response?.data || error.message);
     throw error;
   }
 };

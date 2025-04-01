@@ -283,10 +283,6 @@ def get_food_recommendations(emotion, birth_date, food_type=None, desired_nutrie
     return result
 
 def get_available_nutrients():
-    """Return list of available nutrients that can be selected by the user"""
-    important_nutrients = [
-        'Protein', 'Calcium', 'Vitamin C', 'Vitamin D', 'Vitamin B12', 
-        'Iron', 'Magnesium', 'Zinc', 'Polyunsaturated Fats'
-    ]
-    
-    return [nutrient for nutrient in important_nutrients if nutrient in food_data.columns]
+    """Return list of all available nutrients that can be selected by the user"""
+    # Simply return the existing ALL_NUTRIENTS list
+    return ALL_NUTRIENTS
