@@ -9,19 +9,29 @@ import { detectEmotion } from "../../services/api";
 import { RootStackParamList } from "../../navigations/AppNavigator";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { faCamera, faCameraRotate, faImage } from "@fortawesome/free-solid-svg-icons";
+import {
+  faCamera,
+  faCameraRotate,
+  faImage,
+} from "@fortawesome/free-solid-svg-icons";
 import Row from "../../components/rowHome";
 import UserInfo from "../userPage/userInfo";
 
 const facescan = require("../../assets/image/face-scan.png");
 
-type ShootingNavigationProp = StackNavigationProp<RootStackParamList, "Shooting">;
+type ShootingNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  "Shooting"
+>;
 
 const Shooting: React.FC = () => {
   const navigation = useNavigation<ShootingNavigationProp>();
   const cameraRef = useRef<CameraView | null>(null);
 
-  const [selectedFile, setSelectedFile] = useState<{ uri: string; type?: string } | null>(null);
+  const [selectedFile, setSelectedFile] = useState<{
+    uri: string;
+    type?: string;
+  } | null>(null);
   const [isOpenCamera, setIsOpenCamera] = useState(false);
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [isTakingPhoto, setIsTakingPhoto] = useState(false);
@@ -32,7 +42,10 @@ const Shooting: React.FC = () => {
     const requestPermissions = async () => {
       const { status } = await Camera.requestCameraPermissionsAsync();
       if (status !== "granted") {
-        Alert.alert("Permission Denied", "You need to enable camera permissions in settings.");
+        Alert.alert(
+          "Permission Denied",
+          "You need to enable camera permissions in settings."
+        );
         return;
       }
       setHasPermission(true);
@@ -40,10 +53,6 @@ const Shooting: React.FC = () => {
 
     requestPermissions();
   }, []);
-
-  const handleOpenCamera = () => {
-    setIsOpenCamera(true); // ✅ Chỉ mở camera, không chụp ảnh ngay lập tức
-  };
 
   const handleTakePhoto = async () => {
     if (!hasPermission) {
@@ -135,7 +144,10 @@ const Shooting: React.FC = () => {
                     onCameraReady={() => setIsCameraReady(true)}
                   />
                 ) : selectedFile ? (
-                  <Image source={{ uri: selectedFile.uri }} style={ShootingStyle.selectedImage} />
+                  <Image
+                    source={{ uri: selectedFile.uri }}
+                    style={ShootingStyle.selectedImage}
+                  />
                 ) : (
                   <Image source={facescan} style={ShootingStyle.defaultImage} />
                 )}
@@ -148,26 +160,37 @@ const Shooting: React.FC = () => {
       <View style={ShootingStyle.bottominfo}>
         <View style={ShootingStyle.buttonmenu}>
           <View style={ShootingStyle.upload}>
-            <TouchableOpacity onPress={handleOpenCamera} style={ShootingStyle.rectangleB}>
+            <TouchableOpacity
+              onPress={handleTakePhoto}
+              style={ShootingStyle.rectangleB}
+            >
               <FontAwesomeIcon icon={faCamera} size={30} color="#5C6A7E" />
             </TouchableOpacity>
             {isOpenCamera ? (
-              <TouchableOpacity onPress={toggleCameraType} style={ShootingStyle.rectangleB}>
-                <FontAwesomeIcon icon={faCameraRotate} size={30} color="#5C6A7E" />
+              <TouchableOpacity
+                onPress={toggleCameraType}
+                style={ShootingStyle.rectangleB}
+              >
+                <FontAwesomeIcon
+                  icon={faCameraRotate}
+                  size={30}
+                  color="#5C6A7E"
+                />
               </TouchableOpacity>
             ) : (
-              <TouchableOpacity onPress={handleChooseFromGallery} style={ShootingStyle.rectangleB}>
+              <TouchableOpacity
+                onPress={handleChooseFromGallery}
+                style={ShootingStyle.rectangleB}
+              >
                 <FontAwesomeIcon icon={faImage} size={30} color="#5C6A7E" />
               </TouchableOpacity>
             )}
           </View>
           <View style={ShootingStyle.test}>
-            <TouchableOpacity onPress={handleTakePhoto} style={ShootingStyle.rectangleC}>
-              <Text style={ShootingStyle.testText}>Take Photo</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={ShootingStyle.test}>
-            <TouchableOpacity onPress={handleStartTesting} style={ShootingStyle.rectangleC}>
+            <TouchableOpacity
+              onPress={handleStartTesting}
+              style={ShootingStyle.rectangleC}
+            >
               <Text style={ShootingStyle.testText}>Start Testing</Text>
             </TouchableOpacity>
           </View>

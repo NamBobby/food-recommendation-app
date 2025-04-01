@@ -2,7 +2,7 @@ from flask import Flask
 from flask_cors import CORS
 from database.config import Config
 from database.db_init import db  
-from api.routes import csv_api, auth_api, emotion_api
+from api.routes import csv_api, auth_api, emotion_api, food_api, explanation_api
 
 app = Flask(__name__)
 CORS(app)
@@ -10,9 +10,11 @@ app.config.from_object(Config)
 
 db.init_app(app)  
 
-app.register_blueprint(csv_api)
-app.register_blueprint(auth_api)
-app.register_blueprint(emotion_api)
+app.register_blueprint(csv_api, url_prefix='/api/csv')
+app.register_blueprint(auth_api, url_prefix='/api/auth')
+app.register_blueprint(emotion_api, url_prefix='/api/emotion')
+app.register_blueprint(food_api, url_prefix='/api/food')
+app.register_blueprint(explanation_api, url_prefix='/api/explanation')
 
 @app.route("/")
 def home():

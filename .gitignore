@@ -1,5 +1,7 @@
 node_modules
 00-frontend/.env
+
+
 01-backend/__pycache__/
 
 01-backend/api/__pycache__/

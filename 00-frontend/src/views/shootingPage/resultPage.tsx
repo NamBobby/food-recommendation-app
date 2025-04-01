@@ -2,22 +2,25 @@ import React, { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, Image } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack"; // 🟢 Import StackNavigationProp
-import Svg, { Circle } from "react-native-svg"; // 🟢 Import SVG để vẽ vòng tròn
+import { StackNavigationProp } from "@react-navigation/stack"; 
+import Svg, { Circle } from "react-native-svg"; 
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import UserInfo from "../userPage/userInfo";
 import Row from "../../components/rowBack";
 import ResultStyle from "../../styles/resultStyle";
-import { RootStackParamList } from "../../navigations/AppNavigator"; // 🟢 Import RootStackParamList
+import { RootStackParamList } from "../../navigations/AppNavigator"; 
 
 // Định nghĩa kiểu navigation
-type ResultScreenNavigationProp = StackNavigationProp<RootStackParamList, "Result">;
+type ResultScreenNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  "Result"
+>;
 
 const Result: React.FC = () => {
-  const navigation = useNavigation<ResultScreenNavigationProp>(); // 🟢 Định nghĩa navigation đúng cách
+  const navigation = useNavigation<ResultScreenNavigationProp>(); 
   const [emotion, setEmotion] = useState<string | null>(null);
   const [scanning, setScanning] = useState(true);
-  const imageUrl = "https://via.placeholder.com/150"; // 🟢 Ảnh placeholder
+  const imageUrl = "https://via.placeholder.com/150"; 
 
   useEffect(() => {
     const fetchEmotion = async () => {
@@ -34,7 +37,6 @@ const Result: React.FC = () => {
     fetchEmotion();
   }, []);
 
-  // Chọn màu vòng tròn dựa trên cảm xúc
   const getCircleColor = () => {
     switch (emotion) {
       case "angry":
@@ -60,14 +62,16 @@ const Result: React.FC = () => {
     <View style={ResultStyle.container}>
       <View style={ResultStyle.topinfo}>
         <View style={ResultStyle.info}>
-          <Row/>
+          <Row />
           <UserInfo />
         </View>
         <View style={ResultStyle.mainphoto}>
           <View style={ResultStyle.content}>
             <View style={ResultStyle.elipse2}>
               <View style={ResultStyle.elipse}>
-                {imageUrl && <Image source={{ uri: imageUrl }} style={ResultStyle.img} />}
+                {imageUrl && (
+                  <Image source={{ uri: imageUrl }} style={ResultStyle.img} />
+                )}
               </View>
             </View>
           </View>
@@ -82,7 +86,10 @@ const Result: React.FC = () => {
             </View>
           ) : (
             <View style={ResultStyle.circleChartPercentage}>
-              <Svg style={ResultStyle.circleChartBackground} viewBox="0 0 50 50">
+              <Svg
+                style={ResultStyle.circleChartBackground}
+                viewBox="0 0 50 50"
+              >
                 <Circle
                   cx={25}
                   cy={25}
@@ -90,7 +97,7 @@ const Result: React.FC = () => {
                   strokeWidth={2}
                   stroke={getCircleColor()}
                   strokeDasharray={151.94744}
-                  strokeDashoffset={75} // 🟢 Hiện trạng thái của cảm xúc
+                  strokeDashoffset={75} 
                   fill="transparent"
                   strokeLinecap="round"
                   transform="rotate(-90, 25, 25)"
