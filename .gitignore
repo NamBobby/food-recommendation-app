@@ -6,3 +6,5 @@ node_modules
 
 01-backend/api/__pycache__/
 01-backend/database/__pycache__/
+/01-backend/api/__pycache__
+01-backend/api/__pycache__/routes.cpython-312.pyc

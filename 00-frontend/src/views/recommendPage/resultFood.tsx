@@ -15,7 +15,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faArrowLeft, faFloppyDisk, faChartLine } from "@fortawesome/free-solid-svg-icons";
 import { RootStackParamList } from "../../navigations/AppNavigator";
-import { getFoodRecommendations, getFoodExplanation } from "../../services/api";
+import { getFoodRecommendations, getFoodExplanation, selectFood } from "../../services/api";
 
 type ResultFoodNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -66,42 +66,136 @@ const ResultFood: React.FC = () => {
         const storedFoodType = await AsyncStorage.getItem("foodType");
         const storedNutrient = await AsyncStorage.getItem("desiredNutrient");
 
+        console.log("Debug - Stored values:", {
+          emotion: storedEmotion,
+          foodType: storedFoodType,
+          nutrient: storedNutrient
+        });
+
         if (storedEmotion) setEmotion(storedEmotion);
         if (storedFoodType) setFoodType(storedFoodType);
         if (storedNutrient) setDesiredNutrient(storedNutrient);
 
         // Get recommendations from API
+        console.log("Debug - Calling API with:", {
+          emotion: storedEmotion || "neutral",
+          foodType: storedFoodType || "dessert",
+          nutrient: storedNutrient || ""
+        });
+
         const response = await getFoodRecommendations(
           storedEmotion || "neutral",
           storedFoodType || "dessert",
           storedNutrient || ""
         );
 
-        setRecommendations(response);
-        if (response.log_id) {
-          setLogId(response.log_id);
+        console.log("Debug - Full API response:", JSON.stringify(response, null, 2));
+
+        // Validate response structure
+        if (!response) {
+          console.error("Debug - Response is empty or undefined");
+          setError("Empty response from server");
+          setRecommendations(null);
+          setLoading(false);
+          return;
         }
 
-        // Set the initial selected recommendation
-        if (response.mood_optimized && response.mood_optimized.recommended) {
-          setSelectedRecommendation(response.mood_optimized.recommended);
-          
-          // Get explanation for the mood-optimized recommendation
-          try {
-            const explanationData = await getFoodExplanation(
-              response.mood_optimized.recommended,
-              storedEmotion || "neutral",
-              storedNutrient || ""
-            );
-            setExplanation(explanationData);
-          } catch (explanationError) {
-            console.error("❌ Error fetching explanation:", explanationError);
-            // Just set explanation to null if it fails
-            setExplanation(null);
+        // Fix for possible response structure issues
+        const formattedResponse: RecommendationResponse = {
+          mood_optimized: {
+            recommended: null,
+            suggested: []
+          }
+        };
+
+        // Handle possible response structure inconsistencies
+        if (response.status === "success") {
+          // If the response has a different structure than expected
+          if (response.mood_optimized) {
+            formattedResponse.mood_optimized = response.mood_optimized;
+          }
+          if (response.preference_based) {
+            formattedResponse.preference_based = response.preference_based;
+          }
+          if (response.log_id) {
+            formattedResponse.log_id = response.log_id;
+          }
+          if (response.user_name) {
+            formattedResponse.user_name = response.user_name;
+          }
+        } else {
+          // If the response is already in the expected format
+          formattedResponse.mood_optimized = response.mood_optimized || { recommended: null, suggested: [] };
+          if (response.preference_based) {
+            formattedResponse.preference_based = response.preference_based;
+          }
+          if (response.log_id) {
+            formattedResponse.log_id = response.log_id;
           }
         }
-      } catch (error) {
+
+        setRecommendations(formattedResponse);
+        
+        if (formattedResponse.log_id) {
+          setLogId(formattedResponse.log_id);
+        }
+
+        // Check if we have valid recommendations
+        const hasMoodRec = formattedResponse.mood_optimized && formattedResponse.mood_optimized.recommended;
+        const hasPreferenceRec = formattedResponse.preference_based && formattedResponse.preference_based.recommended;
+
+        console.log("Debug - Has mood recommendation:", !!hasMoodRec);
+        console.log("Debug - Has preference recommendation:", !!hasPreferenceRec);
+
+        if (hasMoodRec || hasPreferenceRec) {
+          // Set initial selected recommendation
+          if (hasMoodRec) {
+            setSelectedRecommendation(formattedResponse.mood_optimized.recommended);
+            
+            // Get explanation for the mood-optimized recommendation
+            try {
+              console.log("Debug - Getting explanation for mood recommendation");
+              const explanationData = await getFoodExplanation(
+                formattedResponse.mood_optimized.recommended,
+                storedEmotion || "neutral",
+                storedNutrient || ""
+              );
+              console.log("Debug - Explanation received:", explanationData);
+              setExplanation(explanationData);
+            } catch (explanationError: any) {
+              console.error("❌ Error fetching explanation:", explanationError);
+              setExplanation(null);
+            }
+          } else if (hasPreferenceRec && formattedResponse.preference_based?.recommended) {
+            // Fallback to preference-based recommendation if no mood recommendation
+            // Added null check for preference_based
+            setSelectedRecommendation(formattedResponse.preference_based.recommended);
+            setSelectedTab("preference");
+            
+            try {
+              console.log("Debug - Getting explanation for preference recommendation");
+              const explanationData = await getFoodExplanation(
+                formattedResponse.preference_based.recommended,
+                storedEmotion || "neutral",
+                storedNutrient || ""
+              );
+              setExplanation(explanationData);
+            } catch (explanationError: any) {
+              console.error("❌ Error fetching explanation:", explanationError);
+              setExplanation(null);
+            }
+          }
+        } else {
+          console.error("Debug - No valid recommendations found in response");
+          setError("No recommendations found. Please try again.");
+          setSelectedRecommendation(null);
+        }
+      } catch (error: any) { // Explicitly type error as any to fix TypeScript error
         console.error("❌ Error fetching recommendations:", error);
+        if (error.response) {
+          console.error("Response data:", error.response.data);
+          console.error("Response status:", error.response.status);
+        }
         setError("Failed to get food recommendations. Please try again.");
         setRecommendations(null);
       } finally {
@@ -121,11 +215,22 @@ const ResultFood: React.FC = () => {
   };
 
   const handleSaveRecommendation = async () => {
-    Alert.alert(
-      "Success",
-      "Food recommendation saved to your profile!",
-      [{ text: "OK" }]
-    );
+    if (!selectedRecommendation || !logId) {
+      Alert.alert("Error", "No recommendation to save");
+      return;
+    }
+
+    try {
+      await selectFood(logId, selectedRecommendation.food);
+      Alert.alert(
+        "Success",
+        "Food recommendation saved to your profile!",
+        [{ text: "OK" }]
+      );
+    } catch (error: any) { // Explicitly type error as any
+      console.error("❌ Error saving recommendation:", error);
+      Alert.alert("Error", "Failed to save recommendation");
+    }
   };
 
   const handleTrackMood = () => {
@@ -133,14 +238,32 @@ const ResultFood: React.FC = () => {
   };
 
   const handleTabChange = async (tab: "mood" | "preference") => {
+    if (tab === selectedTab) return; // Don't do anything if tab is already selected
+    
     setSelectedTab(tab);
     
-    if (tab === "mood" && recommendations?.mood_optimized?.recommended) {
+    if (!recommendations) return;
+    
+    if (tab === "mood" && recommendations.mood_optimized?.recommended) {
       setSelectedRecommendation(recommendations.mood_optimized.recommended);
-    } else if (tab === "preference" && recommendations?.preference_based?.recommended) {
+      
+      // Try to get explanation for the mood-based recommendation
+      try {
+        const explanationData = await getFoodExplanation(
+          recommendations.mood_optimized.recommended,
+          emotion,
+          desiredNutrient
+        );
+        setExplanation(explanationData);
+      } catch (error: any) { // Explicitly type error as any
+        console.error("❌ Error fetching explanation:", error);
+        setExplanation(null);
+      }
+    } else if (tab === "preference" && recommendations.preference_based?.recommended) {
+      // Add null check for preference_based
       setSelectedRecommendation(recommendations.preference_based.recommended);
       
-      // Try to get explanation for the preference-based recommendation if it changes
+      // Try to get explanation for the preference-based recommendation
       try {
         const explanationData = await getFoodExplanation(
           recommendations.preference_based.recommended,
@@ -148,7 +271,7 @@ const ResultFood: React.FC = () => {
           desiredNutrient
         );
         setExplanation(explanationData);
-      } catch (error) {
+      } catch (error: any) { // Explicitly type error as any
         console.error("❌ Error fetching explanation:", error);
         setExplanation(null);
       }

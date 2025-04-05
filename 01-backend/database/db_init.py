@@ -20,13 +20,23 @@ class User(db.Model):
 class UserFoodLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="CASCADE"))
-    mood = db.Column(db.String(50))  # Cảm xúc lúc chọn món
-    recommended_food_mood = db.Column(db.String(255))  # Món được recommend theo tâm trạng
-    recommended_food_preference = db.Column(db.String(255))  # Món được recommend theo sở thích
-    chosen_food = db.Column(db.String(255))  # Món mà người dùng chọn
-    food_preference_type = db.Column(db.String(50))  # Loại món ăn đã chọn (Cake, Drink, Dessert...)
-    priority_nutrient = db.Column(db.String(100))  # Chất dinh dưỡng ưu tiên
-    selected_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    
+    # Input information
+    mood = db.Column(db.String(50), nullable=False)  # User's emotion
+    meal_time = db.Column(db.String(50))  # Meal time (Breakfast, Lunch, etc.)
+    food_type = db.Column(db.String(50))  # Food type preference
+    
+    # Recommendation results
+    recommended_food = db.Column(db.String(255))  # Recommended food
+    recommended_food_alternatives = db.Column(db.Text)  # JSON string of alternative recommendations
+    
+    # User selection and feedback
+    chosen_food = db.Column(db.String(255))  # Food chosen by user
+    compatibility_score = db.Column(db.Float)  # Compatibility score from model
+    feedback_rating = db.Column(db.Integer)  # User rating (1-5 stars)
+    
+    # Metadata
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
 
 # Bảng lưu hiệu quả của chất dinh dưỡng
 class NutrientEffectiveness(db.Model):

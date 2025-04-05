@@ -135,7 +135,7 @@ def get_food_types():
 
 @food_api.route("/recommend-food", methods=["POST"])
 def recommend_food():
-    """API trả về gợi ý món ăn dựa trên cảm xúc và thông tin người dùng"""
+    """API returns food recommendations based on emotion and user info"""
     auth_header = request.headers.get("Authorization")
     if not auth_header or not auth_header.startswith("Bearer "):
         return jsonify({"error": "Authentication required"}), 401
@@ -148,32 +148,58 @@ def recommend_food():
     
     data = request.json
     
-    # Lấy dữ liệu đầu vào
+    # Get input data
     emotion = data.get("emotion")
+    meal_time = data.get("meal_time")
     food_type = data.get("food_type")
-    desired_nutrient = data.get("desired_nutrient")  
     
-    # Kiểm tra cảm xúc
+    # Check required fields
     if not emotion:
         return jsonify({"error": "Emotion is required"}), 400
+    if not meal_time:
+        return jsonify({"error": "Meal time is required"}), 400
     
     try:
-        # Lấy gợi ý từ model
-        recommendations = get_food_recommendations(
-            emotion=emotion,
-            birth_date=user.date_of_birth,
-            food_type=food_type,
-            desired_nutrient=desired_nutrient
-        )
+        # For personalized recommendations
+        if "personalized" in data and data["personalized"]:
+            # Calculate age
+            today = date.today()
+            age = today.year - user.date_of_birth.year - ((today.month, today.day) < (user.date_of_birth.month, user.date_of_birth.day))
+            
+            # Get personalized recommendations
+            recommendation, alternatives = personalized_recommendation(
+                user_id=user.id,
+                emotion=emotion,
+                age=age,
+                meal_time=meal_time,
+                preferred_food_type=food_type
+            )
+            recommendations = {
+                "recommendation": recommendation,
+                "alternatives": alternatives
+            }
+        else:
+            # Get standard recommendations
+            recommendations = get_food_recommendations(
+                emotion=emotion,
+                birth_date=user.date_of_birth,
+                user_id=user.id,
+                meal_time=meal_time,
+                food_type=food_type
+            )
         
-        # Lưu lịch sử gợi ý vào database
+        # Convert alternatives to JSON string for storage
+        import json
+        alternatives_json = json.dumps(recommendations.get("alternatives", []))
+        
+        # Save recommendation to database
         log_entry = UserFoodLog(
             user_id=user.id,
             mood=emotion,
-            recommended_food_mood=recommendations.get('mood_optimized', {}).get('recommended', {}).get('food', ''),
-            recommended_food_preference=recommendations.get('preference_based', {}).get('recommended', {}).get('food', ''),
-            food_preference_type=food_type if food_type else '',
-            priority_nutrient=desired_nutrient if desired_nutrient else ''
+            meal_time=meal_time,
+            food_type=food_type if food_type else '',
+            recommended_food=recommendations.get("recommendation", {}).get("food", "") if recommendations.get("recommendation") else "",
+            recommended_food_alternatives=alternatives_json
         )
         db.session.add(log_entry)
         db.session.commit()
@@ -191,7 +217,7 @@ def recommend_food():
 
 @food_api.route("/select-food", methods=["POST"])
 def select_food():
-    """API ghi nhận món ăn mà người dùng đã chọn"""
+    """API records the food selected by the user"""
     auth_header = request.headers.get("Authorization")
     if not auth_header or not auth_header.startswith("Bearer "):
         return jsonify({"error": "Authentication required"}), 401
@@ -205,6 +231,7 @@ def select_food():
     data = request.json
     log_id = data.get("log_id")
     chosen_food = data.get("chosen_food")
+    compatibility_score = data.get("compatibility_score")
     
     if not log_id or not chosen_food:
         return jsonify({"error": "Log ID and chosen food are required"}), 400
@@ -215,8 +242,11 @@ def select_food():
         if not log_entry:
             return jsonify({"error": "Log entry not found"}), 404
         
-        # Cập nhật món ăn đã chọn
+        # Update chosen food and score
         log_entry.chosen_food = chosen_food
+        if compatibility_score is not None:
+            log_entry.compatibility_score = float(compatibility_score)
+        
         db.session.commit()
         
         return jsonify({
@@ -227,8 +257,49 @@ def select_food():
     except Exception as e:
         print(f"❌ Error recording food selection: {e}")
         return jsonify({"error": "Failed to record food selection"}), 500
+
+@food_api.route("/rate-food", methods=["POST"])
+def rate_food():
+    """API records user rating for a food recommendation"""
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        return jsonify({"error": "Authentication required"}), 401
     
-explanation_ai = FoodExplanationAI()
+    token = auth_header.split(" ")[1]
+    user = get_user_from_token(token)
+    
+    if not user:
+        return jsonify({"error": "Invalid or expired token"}), 401
+    
+    data = request.json
+    log_id = data.get("log_id")
+    rating = data.get("rating")  # 1-5 rating
+    
+    if not log_id or rating is None:
+        return jsonify({"error": "Log ID and rating are required"}), 400
+    
+    try:
+        rating = int(rating)
+        if rating < 1 or rating > 5:
+            return jsonify({"error": "Rating must be between 1 and 5"}), 400
+            
+        log_entry = UserFoodLog.query.filter_by(id=log_id, user_id=user.id).first()
+        
+        if not log_entry:
+            return jsonify({"error": "Log entry not found"}), 404
+        
+        # Update rating
+        log_entry.feedback_rating = rating
+        db.session.commit()
+        
+        return jsonify({
+            "status": "success",
+            "message": "Food rating recorded successfully"
+        })
+        
+    except Exception as e:
+        print(f"❌ Error recording food rating: {e}")
+        return jsonify({"error": "Failed to record food rating"}), 500
 
 @explanation_api.route("/explain-recommendation", methods=["POST"])
 def explain_recommendation():
