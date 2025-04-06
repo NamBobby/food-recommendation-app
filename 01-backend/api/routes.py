@@ -3,10 +3,10 @@ import jwt
 from flask import Blueprint, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from database.db_init import db, User, UserFoodLog
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone, date
 from database.config import Config
 from models.mood_prediction_model import predict_emotion 
-from models.food_recommendation_model import get_food_recommendations, get_available_nutrients
+from models.food_recommendation_model import get_food_recommendations, get_available_nutrients, personalized_recommendation
 from models.food_explaination_ai import FoodExplanationAI
 
 csv_api = Blueprint("csv_api", __name__)
@@ -328,7 +328,7 @@ def explain_recommendation():
     }
     
     # Tạo giải thích bằng Explanation AI
-    explanation = explanation_ai.explain_recommendation(recommendation, user_data)
+    explanation = FoodExplanationAI.explain_recommendation(recommendation, user_data)
     
     return jsonify({
         "status": "success",

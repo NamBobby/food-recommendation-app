@@ -61,7 +61,7 @@ export const fetchFoodTypes = async () => {
     return response.data.food_types;
   } catch (error) {
     console.error("Error fetching food types:", error);
-    return ["dessert", "drink", "cake", "sweet"]; 
+    return ['Fruits','Vegetables','Meat','Dairy','Grains','Snacks','Beverages']; 
   }
 };
 
@@ -130,12 +130,13 @@ export const detectEmotion = async (imageUri: string) => {
 };
 
 // Food recommendation API endpoints
-export const getFoodRecommendations = async (emotion: string, foodType: string, desiredNutrient: string) => {
+export const getFoodRecommendations = async (emotion: string, mealTime: string, foodType?: string) => {
   try {
     const response = await apiClient.post("/api/food/recommend-food", {
       emotion,
+      meal_time: mealTime,
       food_type: foodType,
-      desired_nutrient: desiredNutrient
+      personalized: true // Enable personalized recommendations
     });
     
     return response.data;
@@ -146,12 +147,11 @@ export const getFoodRecommendations = async (emotion: string, foodType: string, 
 };
 
 // Explanation API endpoints
-export const getFoodExplanation = async (recommendation: any, emotion: string, desiredNutrient: string) => {
+export const getFoodExplanation = async (recommendation: any, emotion: string) => {
   try {
     const response = await apiClient.post("/api/explanation/explain-recommendation", {
       recommendation,
-      emotion,
-      desired_nutrient: desiredNutrient
+      emotion
     });
     
     return response.data.explanation;
@@ -162,16 +162,32 @@ export const getFoodExplanation = async (recommendation: any, emotion: string, d
 };
 
 // Food selection API endpoint
-export const selectFood = async (logId: number, chosenFood: string) => {
+export const selectFood = async (logId: number, chosenFood: string, compatibilityScore?: number) => {
   try {
     const response = await apiClient.post("/api/food/select-food", {
       log_id: logId,
-      chosen_food: chosenFood
+      chosen_food: chosenFood,
+      compatibility_score: compatibilityScore
     });
     
     return response.data;
   } catch (error: any) {
     console.error("❌ Food Selection API Error:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+// Rate food API endpoint
+export const rateFood = async (logId: number, rating: number) => {
+  try {
+    const response = await apiClient.post("/api/food/rate-food", {
+      log_id: logId,
+      rating
+    });
+    
+    return response.data;
+  } catch (error: any) {
+    console.error("❌ Food Rating API Error:", error.response?.data || error.message);
     throw error;
   }
 };

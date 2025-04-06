@@ -10,34 +10,27 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import DropDownPicker from "react-native-dropdown-picker";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { RootStackParamList } from "../../navigations/AppNavigator";
-import { fetchAvailableNutrients, fetchFoodTypes } from "../../services/api";
+import { fetchFoodTypes } from "../../services/api";
 
 type ChoosingPrefNavigationProp = StackNavigationProp<
   RootStackParamList,
   "ChoosingPref"
 >;
 
+// Define meal time options
+const MEAL_TIMES = ["Breakfast", "Lunch", "Dinner", "Snack"];
+
 const ChoosingPref: React.FC = () => {
   const navigation = useNavigation<ChoosingPrefNavigationProp>();
   const [emotion, setEmotion] = useState<string>("neutral");
-  const [selectedFoodType, setSelectedFoodType] = useState<string>("dessert");
-  const [selectedNutrient, setSelectedNutrient] = useState<string | null>(
-    "None"
-  );
+  const [selectedFoodType, setSelectedFoodType] = useState<string | null>(null);
+  const [selectedMealTime, setSelectedMealTime] = useState<string>("Lunch");
   const [loading, setLoading] = useState<boolean>(false);
   const [loadingData, setLoadingData] = useState<boolean>(true);
-  const [nutrients, setNutrients] = useState<string[]>(["None"]);
   const [foodTypes, setFoodTypes] = useState<string[]>([]);
-
-  // Dropdown open states
-  const [nutrientOpen, setNutrientOpen] = useState(false);
-
-  // State for dropdown search
-  const [nutrientSearch, setNutrientSearch] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -64,22 +57,9 @@ const ChoosingPref: React.FC = () => {
           }
         } catch (error) {
           console.error("❌ Error fetching food types:", error);
-        }
-
-        // Fetch available nutrients
-        try {
-          const fetchedNutrients = await fetchAvailableNutrients();
-
-          if (
-            fetchedNutrients &&
-            Array.isArray(fetchedNutrients) &&
-            fetchedNutrients.length > 0
-          ) {
-            // Add "None" at the beginning of the list
-            setNutrients(["None", ...fetchedNutrients]);
-          }
-        } catch (error) {
-          console.error("❌ Error fetching nutrients:", error);
+          // Fallback food types
+          setFoodTypes(["dessert", "drink", "cake", "sweet"]);
+          setSelectedFoodType("dessert");
         }
       } catch (error) {
         console.error("❌ General error in data fetching:", error);
@@ -99,11 +79,8 @@ const ChoosingPref: React.FC = () => {
     setLoading(true);
     try {
       // Save preferences to AsyncStorage
-      await AsyncStorage.setItem("foodType", selectedFoodType);
-      await AsyncStorage.setItem(
-        "desiredNutrient",
-        selectedNutrient === "None" ? "" : selectedNutrient || ""
-      );
+      await AsyncStorage.setItem("foodType", selectedFoodType || "");
+      await AsyncStorage.setItem("mealTime", selectedMealTime);
 
       // Navigate to result page
       navigation.navigate("ResultFood");
@@ -173,8 +150,37 @@ const ChoosingPref: React.FC = () => {
           <Text style={styles.subtitle}>Please select your preferences</Text>
         </View>
 
+        {/* Meal Time Selection */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Food Type</Text>
+          <Text style={styles.sectionTitle}>Meal Time</Text>
+          <View style={styles.radioGroup}>
+            {MEAL_TIMES.map((meal) => (
+              <TouchableOpacity
+                key={meal}
+                style={[
+                  styles.radioButton,
+                  selectedMealTime === meal && {
+                    backgroundColor: getEmotionColor(),
+                  },
+                ]}
+                onPress={() => setSelectedMealTime(meal)}
+              >
+                <Text
+                  style={[
+                    styles.radioText,
+                    selectedMealTime === meal && styles.radioTextSelected,
+                  ]}
+                >
+                  {meal}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Food Type Selection */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Food Type (Optional)</Text>
           <View style={styles.radioGroup}>
             {foodTypes.map((type) => (
               <TouchableOpacity
@@ -197,33 +203,6 @@ const ChoosingPref: React.FC = () => {
                 </Text>
               </TouchableOpacity>
             ))}
-          </View>
-        </View>
-
-        <View style={[styles.section, { zIndex: 1000 }]}>
-          <Text style={styles.sectionTitle}>Desired Nutrient (Optional)</Text>
-          <View style={styles.dropdownContainer}>
-            <DropDownPicker
-              open={nutrientOpen}
-              value={selectedNutrient}
-              items={nutrients.map((nutrient) => ({
-                label: nutrient,
-                value: nutrient,
-              }))}
-              setOpen={setNutrientOpen}
-              setValue={setSelectedNutrient}
-              setItems={() => {}} // Required but not used here
-              placeholder="Select a nutrient"
-              searchable={true}
-              searchPlaceholder="Search for a nutrient..."
-              onChangeSearchText={setNutrientSearch}
-              style={styles.dropdown}
-              dropDownContainerStyle={styles.dropdownList}
-              listItemLabelStyle={styles.dropdownItemLabel}
-              zIndex={3000}
-              zIndexInverse={1000}
-              maxHeight={300}
-            />
           </View>
         </View>
 
@@ -323,26 +302,6 @@ const styles = StyleSheet.create({
   radioTextSelected: {
     color: "white",
     fontWeight: "600",
-  },
-  dropdownContainer: {
-    marginBottom: 20,
-  },
-  dropdown: {
-    backgroundColor: "white",
-    borderColor: "#E5E7EB",
-    borderWidth: 1,
-    borderRadius: 8,
-    minHeight: 50,
-  },
-  dropdownList: {
-    backgroundColor: "white",
-    borderColor: "#E5E7EB",
-    borderWidth: 1,
-    borderRadius: 8,
-  },
-  dropdownItemLabel: {
-    color: "#4B5563",
-    fontSize: 14,
   },
   spacer: {
     flex: 1,
