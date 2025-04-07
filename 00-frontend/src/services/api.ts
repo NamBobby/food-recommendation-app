@@ -136,13 +136,24 @@ export const getFoodRecommendations = async (emotion: string, mealTime: string, 
       emotion,
       meal_time: mealTime,
       food_type: foodType,
-      personalized: true // Enable personalized recommendations
+      personalized: true
     });
     
     return response.data;
   } catch (error: any) {
     console.error("❌ Recommendation API Error:", error.response?.data || error.message);
     throw error;
+  }
+};
+
+// Thêm API endpoint để lấy danh sách chất dinh dưỡng ưu tiên
+export const getPriorityNutrients = async (emotion: string) => {
+  try {
+    const response = await apiClient.get(`/api/food/get-priority-nutrients?emotion=${emotion}`);
+    return response.data.priority_nutrients;
+  } catch (error: any) {
+    console.error("❌ Priority Nutrients API Error:", error.response?.data || error.message);
+    return []; // Trả về mảng trống nếu có lỗi
   }
 };
 

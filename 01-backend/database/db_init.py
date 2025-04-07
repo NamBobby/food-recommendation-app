@@ -2,10 +2,14 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from database.config import Config
 from werkzeug.security import generate_password_hash
+import os
 
 app = Flask(__name__)
 app.config.from_object(Config)
 db = SQLAlchemy(app)
+
+# Check if we should drop all tables (for development/testing)
+RESET_DATABASE = os.getenv("RESET_DATABASE", "false").lower() == "false"
 
 # Bảng lưu thông tin người dùng
 class User(db.Model):
@@ -16,7 +20,7 @@ class User(db.Model):
     role = db.Column(db.String(10), nullable=False, default="user")
     date_of_birth = db.Column(db.Date, nullable=False)  # Ngày sinh để tính tuổi
 
-# Bảng lưu lịch sử chọn món của người dùng
+# Bảng lưu lịch sử chọn món của người dùng - Đã cập nhật theo yêu cầu
 class UserFoodLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="CASCADE"))
@@ -28,11 +32,8 @@ class UserFoodLog(db.Model):
     
     # Recommendation results
     recommended_food = db.Column(db.String(255))  # Recommended food
-    recommended_food_alternatives = db.Column(db.Text)  # JSON string of alternative recommendations
     
-    # User selection and feedback
-    chosen_food = db.Column(db.String(255))  # Food chosen by user
-    compatibility_score = db.Column(db.Float)  # Compatibility score from model
+    # User feedback
     feedback_rating = db.Column(db.Integer)  # User rating (1-5 stars)
     
     # Metadata
@@ -78,8 +79,17 @@ def seed_default_users():
     db.session.commit()
     print("✅ Default Admin & User accounts added!")
 
+def init_db():
+    """Initialize the database - drop all tables if RESET_DATABASE is True"""
+    if RESET_DATABASE:
+        print("⚠️ RESET_DATABASE is True - Dropping all tables...")
+        db.drop_all()
+        print("✅ All tables dropped successfully")
+    
+    db.create_all()
+    seed_default_users()
+    print("✅ Database & Tables Created/Updated Successfully!")
+
 if __name__ == "__main__":
     with app.app_context():
-        db.create_all()
-        seed_default_users()
-        print("✅ Database & Tables Created Successfully!")
+        init_db()

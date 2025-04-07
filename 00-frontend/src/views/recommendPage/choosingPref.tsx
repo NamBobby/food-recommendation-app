@@ -57,9 +57,6 @@ const ChoosingPref: React.FC = () => {
           }
         } catch (error) {
           console.error("❌ Error fetching food types:", error);
-          // Fallback food types
-          setFoodTypes(["dessert", "drink", "cake", "sweet"]);
-          setSelectedFoodType("dessert");
         }
       } catch (error) {
         console.error("❌ General error in data fetching:", error);

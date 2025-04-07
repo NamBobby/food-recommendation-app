@@ -127,7 +127,7 @@ def get_nutrients():
 @food_api.route("/get-food-types", methods=["GET"])
 def get_food_types():
     """API trả về danh sách các loại thực phẩm có thể chọn"""
-    food_types = ["dessert", "drink", "cake", "sweet"]
+    food_types = ['Fruits','Vegetables','Meat','Dairy','Grains','Snacks','Beverages']
     return jsonify({
         "status": "success",
         "food_types": food_types
@@ -160,37 +160,21 @@ def recommend_food():
         return jsonify({"error": "Meal time is required"}), 400
     
     try:
-        # For personalized recommendations
-        if "personalized" in data and data["personalized"]:
-            # Calculate age
-            today = date.today()
-            age = today.year - user.date_of_birth.year - ((today.month, today.day) < (user.date_of_birth.month, user.date_of_birth.day))
-            
-            # Get personalized recommendations
-            recommendation, alternatives = personalized_recommendation(
-                user_id=user.id,
-                emotion=emotion,
-                age=age,
-                meal_time=meal_time,
-                preferred_food_type=food_type
-            )
-            recommendations = {
-                "recommendation": recommendation,
-                "alternatives": alternatives
-            }
-        else:
-            # Get standard recommendations
-            recommendations = get_food_recommendations(
-                emotion=emotion,
-                birth_date=user.date_of_birth,
-                user_id=user.id,
-                meal_time=meal_time,
-                food_type=food_type
-            )
+        # Calculate age for personalized recommendation
+        today = date.today()
+        age = today.year - user.date_of_birth.year - ((today.month, today.day) < (user.date_of_birth.month, user.date_of_birth.day))
         
-        # Convert alternatives to JSON string for storage
-        import json
-        alternatives_json = json.dumps(recommendations.get("alternatives", []))
+        # Get recommendations from model
+        recommendations = get_food_recommendations(
+            emotion=emotion,
+            birth_date=user.date_of_birth,
+            user_id=user.id,
+            meal_time=meal_time,
+            food_type=food_type
+        )
+        
+        # Get recommendation
+        recommendation = recommendations.get("recommendation")
         
         # Save recommendation to database
         log_entry = UserFoodLog(
@@ -198,18 +182,25 @@ def recommend_food():
             mood=emotion,
             meal_time=meal_time,
             food_type=food_type if food_type else '',
-            recommended_food=recommendations.get("recommendation", {}).get("food", "") if recommendations.get("recommendation") else "",
-            recommended_food_alternatives=alternatives_json
+            recommended_food=recommendation.get("food", "") if recommendation else ""
         )
         db.session.add(log_entry)
         db.session.commit()
         
-        return jsonify({
+        # Get priority nutrients for the emotion
+        from models.food_recommendation_model import EMOTION_PRIORITY_NUTRIENTS
+        priority_nutrients = EMOTION_PRIORITY_NUTRIENTS.get(emotion.lower(), [])
+        
+        # Return structured response
+        response = {
             "status": "success",
             "user_name": user.name,
-            "recommendations": recommendations,
+            "recommendation": recommendation,
+            "priority_nutrients": priority_nutrients,
             "log_id": log_entry.id
-        })
+        }
+        
+        return jsonify(response)
         
     except Exception as e:
         print(f"❌ Error getting recommendations: {e}")
@@ -231,7 +222,6 @@ def select_food():
     data = request.json
     log_id = data.get("log_id")
     chosen_food = data.get("chosen_food")
-    compatibility_score = data.get("compatibility_score")
     
     if not log_id or not chosen_food:
         return jsonify({"error": "Log ID and chosen food are required"}), 400
@@ -242,10 +232,8 @@ def select_food():
         if not log_entry:
             return jsonify({"error": "Log entry not found"}), 404
         
-        # Update chosen food and score
-        log_entry.chosen_food = chosen_food
-        if compatibility_score is not None:
-            log_entry.compatibility_score = float(compatibility_score)
+        # Update recommended food with the chosen one
+        log_entry.recommended_food = chosen_food
         
         db.session.commit()
         
@@ -300,6 +288,23 @@ def rate_food():
     except Exception as e:
         print(f"❌ Error recording food rating: {e}")
         return jsonify({"error": "Failed to record food rating"}), 500
+    
+@food_api.route("/get-priority-nutrients", methods=["GET"])
+def get_priority_nutrients():
+    """API returns list of priority nutrients for each emotion"""
+    from models.food_recommendation_model import EMOTION_PRIORITY_NUTRIENTS
+    
+    emotion = request.args.get("emotion")
+    
+    if emotion and emotion.lower() in EMOTION_PRIORITY_NUTRIENTS:
+        nutrients = EMOTION_PRIORITY_NUTRIENTS[emotion.lower()]
+    else:
+        nutrients = {emotion: nutrients for emotion, nutrients in EMOTION_PRIORITY_NUTRIENTS.items()}
+    
+    return jsonify({
+        "status": "success",
+        "priority_nutrients": nutrients
+    })
 
 @explanation_api.route("/explain-recommendation", methods=["POST"])
 def explain_recommendation():

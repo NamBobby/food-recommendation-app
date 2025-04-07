@@ -9,6 +9,26 @@ SUPPORTED_EMOTIONS = ['sad', 'disgust', 'angry', 'neutral', 'surprise', 'happy',
 SUPPORTED_MEAL_TYPES = ['Breakfast', 'Lunch', 'Dinner', 'Snack']
 SUPPORTED_FOOD_TYPES = ['Fruits', 'Vegetables', 'Meat', 'Dairy', 'Grains', 'Snacks', 'Beverages']
 
+# Priority nutrients for each emotion - for API to return to frontend
+# Priority nutrients for each emotion - for API to return to frontend
+EMOTION_PRIORITY_NUTRIENTS = {
+    'happy': ['Protein', 'Carbohydrates', 'Vitamin D', 'Polyunsaturated Fats', 'Magnesium'],
+    'sad': [
+        'Polyunsaturated Fats', 'Vitamin D', 'Protein', 'Vitamin B6', 'Vitamin B12', 'Magnesium', 'Zinc'
+    ], 
+    'angry': ['Magnesium', 'Vitamin C'],
+    'fear': ['Magnesium', 'Polyunsaturated Fats', 'Vitamin B6', 'Vitamin B12', 'Vitamin C'],
+    'neutral': [
+        'Carbohydrates', 'Protein', 'Vitamin B1', 'Vitamin B2', 'Vitamin B3',
+        'Vitamin B5', 'Vitamin B6', 'Vitamin B12', 'Magnesium', 'Zinc', 'Iron'
+    ],
+    'surprise': [
+        'Carbohydrates', 'Vitamin B1', 'Vitamin B2', 'Vitamin B3', 'Vitamin B5',
+        'Vitamin B6', 'Vitamin B12', 'Protein', 'Vitamin C', 'Vitamin D'
+    ],
+    'disgust': ['Dietary Fiber', 'Magnesium', 'Zinc', 'Vitamin B6']
+}
+
 # Load models and data
 model_path = Path(__file__).parent / "food_recommendation_model.pkl"
 mappings_path = Path(__file__).parent / "model_mappings.pkl"
@@ -32,7 +52,6 @@ def check_nutrient_limits(food_row, age_group, tolerance=1.5):
     Returns True if food is within nutritional limits, False if it violates limits.
     """
     # Define nutrition general limits according to age group
-    # This is simplified - you should replace with your actual limits from the notebook
     nutrition_general_limits = {
         'Caloric Value': {'child': 1800, 'adult': 3300},
         'Fat': {'child': 70000, 'adult': 128333.33},
@@ -95,7 +114,7 @@ def get_food_recommendations(emotion, birth_date, user_id=None, meal_time=None, 
         food_type (str, optional): Type of food preferred
         
     Returns:
-        dict: Contains recommendations and alternatives
+        dict: Contains recommendation and alternatives
     """
     if not model_loaded:
         return {"error": "Recommendation model not loaded"}
@@ -134,26 +153,33 @@ def get_food_recommendations(emotion, birth_date, user_id=None, meal_time=None, 
         
         # Get nutrition data for these nutrients
         nutrition_data = {}
-        for nutrient in priority_nutrients:
-            if nutrient in food and not pd.isna(food[nutrient]):
-                nutrition_data[nutrient] = float(food[nutrient])
+        for nutrient in food.index:
+            if not pd.isna(food[nutrient]):
+                try:
+                    nutrition_data[nutrient] = float(food[nutrient])
+                except:
+                    nutrition_data[nutrient] = food[nutrient]
         
         # Create result entry
         results.append({
             'food': food['food'],
             'type': food['food_type'],
-            'score': compatibility_score,
             'nutrition_data': nutrition_data,
             'image_url': food.get('image_url', '')  # Include image URL if available
         })
     
-    # Sort by score
-    results.sort(key=lambda x: x['score'], reverse=True)
+    # Sort by score (calculated internally)
+    results.sort(key=lambda x: calculate_compatibility_score(x['nutrition_data'], emotion, age_group), reverse=True)
     
-    # Return top recommendation and alternatives
+    # Get priority nutrients for the current emotion to return to frontend
+    priority_nutrients = EMOTION_PRIORITY_NUTRIENTS.get(emotion, ['Protein', 'Vitamin C', 'Iron', 'Calcium'])
+    
+    # Return main recommendation and up to 3 alternatives
     return {
+        'status': 'success',
         'recommendation': results[0] if results else None,
-        'alternatives': results[1:min(4, len(results))] if len(results) > 1 else []
+        'alternatives': results[1:4] if len(results) > 1 else [],
+        'priority_nutrients': priority_nutrients
     }
 
 def get_available_nutrients():
@@ -175,9 +201,9 @@ def get_user_history(user_id):
     user_history = []
     
     for entry in history_entries:
-        if entry.chosen_food and entry.feedback_rating:
+        if entry.feedback_rating:
             user_history.append({
-                'food': entry.chosen_food,
+                'food': entry.recommended_food,
                 'rating': entry.feedback_rating,
                 'mood': entry.mood,
                 'meal_time': entry.meal_time,
@@ -186,7 +212,7 @@ def get_user_history(user_id):
     
     return user_history
 
-def personalized_recommendation(user_id, emotion, age, meal_time, preferred_food_type=None, top_k=3):
+def personalized_recommendation(user_id, emotion, age, meal_time, preferred_food_type=None):
     """
     Provide personalized food recommendations based on user history
     
@@ -196,33 +222,35 @@ def personalized_recommendation(user_id, emotion, age, meal_time, preferred_food
         age: User's age
         meal_time: Current meal time
         preferred_food_type: Optional food type preference
-        top_k: Number of recommendations to return
         
     Returns:
-        list: Personalized food recommendations
+        dict: Personalized food recommendations
     """
     # Get user history
     user_history = get_user_history(user_id)
     
-    # If no history, return basic recommendations
-    if not user_history:
-        base_recs = get_food_recommendations(emotion, date.today() - timedelta(days=age*365), 
-                                           meal_time=meal_time, food_type=preferred_food_type)
-        return base_recs['recommendation'], base_recs['alternatives'][:top_k-1]
+    # Get base recommendations
+    base_recs = get_food_recommendations(
+        emotion, 
+        date.today() - timedelta(days=age*365), 
+        meal_time=meal_time, 
+        food_type=preferred_food_type
+    )
+    
+    # If no history or base recommendations failed, return base recommendations
+    if not user_history or 'error' in base_recs:
+        return base_recs
     
     # Analyze user preferences
     liked_foods = [entry['food'] for entry in user_history if entry['rating'] >= 4]
     disliked_foods = [entry['food'] for entry in user_history if entry['rating'] <= 2]
     
-    # Get base recommendations 
-    base_recs = get_food_recommendations(emotion, date.today() - timedelta(days=age*365), 
-                                         meal_time=meal_time, food_type=preferred_food_type)
-    
-    base_recommendation = base_recs['recommendation']
-    base_alternatives = base_recs['alternatives']
+    # Get main recommendation and alternatives
+    recommendation = base_recs.get('recommendation')
+    alternatives = base_recs.get('alternatives', [])
     
     # Combine into one list for processing
-    all_recommendations = [base_recommendation] + base_alternatives if base_recommendation else base_alternatives
+    all_recommendations = [recommendation] + alternatives if recommendation else alternatives
     
     # Filter and reorder based on user preferences
     adjusted_recommendations = []
@@ -230,8 +258,6 @@ def personalized_recommendation(user_id, emotion, age, meal_time, preferred_food
     # First add liked foods that are in recommendations
     for rec in all_recommendations:
         if rec['food'] in liked_foods:
-            # Boost score for liked foods
-            rec['score'] *= 1.2  
             adjusted_recommendations.append(rec)
     
     # Then add other recommendations that are not disliked
@@ -239,11 +265,16 @@ def personalized_recommendation(user_id, emotion, age, meal_time, preferred_food
         if rec['food'] not in disliked_foods and rec not in adjusted_recommendations:
             adjusted_recommendations.append(rec)
     
-    # Sort by adjusted score
-    adjusted_recommendations.sort(key=lambda x: x['score'], reverse=True)
+    # If no adjusted recommendations, use original ones
+    if not adjusted_recommendations:
+        adjusted_recommendations = all_recommendations
     
-    # Return top recommendation and alternatives
-    if adjusted_recommendations:
-        return adjusted_recommendations[0], adjusted_recommendations[1:top_k]
-    else:
-        return None, []
+    # Return recommended and alternatives with priority nutrients
+    priority_nutrients = EMOTION_PRIORITY_NUTRIENTS.get(emotion, ['Protein', 'Vitamin C', 'Iron', 'Calcium'])
+    
+    return {
+        'status': 'success',
+        'recommendation': adjusted_recommendations[0] if adjusted_recommendations else None,
+        'alternatives': adjusted_recommendations[1:4] if len(adjusted_recommendations) > 1 else [],
+        'priority_nutrients': priority_nutrients
+    }
