@@ -191,3 +191,14 @@ export const rateFood = async (logId: number, rating: number) => {
     throw error;
   }
 };
+
+// Food logs API endpoint
+export const getUserFoodLogs = async () => {
+  try {
+    const response = await apiClient.get("/api/food/get-user-logs");
+    return response.data;
+  } catch (error: any) {
+    console.error("❌ Food Logs API Error:", error.response?.data || error.message);
+    throw error;
+  }
+};

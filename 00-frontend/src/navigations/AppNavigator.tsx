@@ -3,7 +3,6 @@ import { createStackNavigator } from "@react-navigation/stack";
 import { NavigationContainer } from "@react-navigation/native";
 
 import Home from "../views/homePage/homePage";
-import FoodList from "../views/foodListPage/foodList";
 import Login from "../views/authPage/login";
 import Register from "../views/authPage/register";
 import Shooting from "../views/shootingPage/shootingPage";
@@ -33,7 +32,6 @@ export default function AppNavigator(): React.ReactElement {
                 <Stack.Screen name="Login" component={Login} />
                 <Stack.Screen name="Register" component={Register} />
                 <Stack.Screen name="Home" component={Home} />
-                <Stack.Screen name="FoodList" component={FoodList} /> 
                 <Stack.Screen name="Shooting" component={Shooting} />
                 <Stack.Screen name="Result" component={Result} />
                 <Stack.Screen name="Tracking" component={Tracking} />

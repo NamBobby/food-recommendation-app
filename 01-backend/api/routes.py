@@ -9,7 +9,6 @@ from models.mood_prediction_model import predict_emotion
 from models.food_recommendation_model import get_food_recommendations, get_available_nutrients, personalized_recommendation
 from models.food_explaination_ai import FoodExplanationAI
 
-csv_api = Blueprint("csv_api", __name__)
 auth_api = Blueprint("auth_api", __name__)
 emotion_api = Blueprint("emotion_api", __name__)
 food_api = Blueprint("food_api", __name__)
@@ -323,3 +322,45 @@ def explain_recommendation():
         "explanation": explanation
     })
 
+@food_api.route("/get-user-logs", methods=["GET"])
+def get_user_logs():
+    """API returns food recommendation history for the user"""
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        return jsonify({"error": "Authentication required"}), 401
+    
+    token = auth_header.split(" ")[1]
+    user = get_user_from_token(token)
+    
+    if not user:
+        return jsonify({"error": "Invalid or expired token"}), 401
+    
+    try:
+        # Get all food logs for the user
+        logs = UserFoodLog.query.filter_by(user_id=user.id).order_by(UserFoodLog.created_at.desc()).all()
+        
+        logs_data = []
+        for log in logs:
+            # Format date and time properly
+            formatted_date = log.created_at.strftime('%Y-%m-%d')
+            formatted_time = log.created_at.strftime('%H:%M')
+            
+            logs_data.append({
+                "id": log.id,
+                "date": formatted_date,
+                "time": formatted_time,
+                "meal_time": log.meal_time,
+                "food_type": log.food_type,
+                "recommended_food": log.recommended_food,
+                "emotion": log.mood,
+                "rating": log.feedback_rating if log.feedback_rating else 0
+            })
+        
+        return jsonify({
+            "status": "success",
+            "logs": logs_data
+        })
+        
+    except Exception as e:
+        print(f"❌ Error fetching food logs: {e}")
+        return jsonify({"error": "Failed to fetch food logs"}), 500
