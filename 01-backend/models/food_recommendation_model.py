@@ -53,11 +53,34 @@ def check_nutrient_limits(food_row, age_group, tolerance=1.5):
     """
     # Define nutrition general limits according to age group
     nutrition_general_limits = {
-        'Caloric Value': {'child': 1800, 'adult': 3300},
-        'Fat': {'child': 70000, 'adult': 128333.33},
-        'Carbohydrates': {'child': 292500, 'adult': 536250},
-        'Protein': {'child': 27000, 'adult': 71000},
-        # Add more nutrients based on your model
+    'Caloric Value': {'child': 1800, 'adult': 3300},
+    'Fat': {'child': 70000, 'adult': 128333.33},
+    'Polyunsaturated Fats': {'child': 3000, 'adult': 3000},
+    'Carbohydrates': {'child': 292500, 'adult': 536250},
+    'Sugars': {'child': 45000, 'adult': 82500},
+    'Protein': {'child': 27000, 'adult': 71000},
+    'Dietary Fiber': {'child': 13000, 'adult': 30000},
+    'Sodium': {'child': 1500, 'adult': 2000},
+    'Vitamin A': {'child': 900, 'adult': 3000},
+    'Vitamin B1': {'child': 0.7, 'adult': 1.4},
+    'Vitamin B11': {'child': 0.4, 'adult': 1},
+    'Vitamin B12': {'child': 0.0015, 'adult': 0.003},
+    'Vitamin B2': {'child': 0.7, 'adult': 1.7},
+    'Vitamin B3': {'child': 12, 'adult': 16},
+    'Vitamin B5': {'child': 4, 'adult': 5},
+    'Vitamin B6': {'child': 0.9, 'adult': 1.7},
+    'Vitamin C': {'child': 50, 'adult': 100},
+    'Vitamin D': {'child': 0.05, 'adult': 0.1},
+    'Vitamin E': {'child': 100, 'adult': 300},
+    'Vitamin K': {'child': 0.06, 'adult': 0.12},
+    'Calcium': {'child': 1000, 'adult': 2500},
+    'Iron': {'child': 10, 'adult': 18},
+    'Copper': {'child': 0.7, 'adult': 0.9},
+    'Magnesium': {'child': 200, 'adult': 420},
+    'Manganese': {'child': 1.5, 'adult': 2.3},
+    'Phosphorus': {'child': 800, 'adult': 1250},
+    'Potassium': {'child': 2600, 'adult': 4700},
+    'Zinc': {'child': 12, 'adult': 40}
     }
     
     for nutrient, group_limits in nutrition_general_limits.items():

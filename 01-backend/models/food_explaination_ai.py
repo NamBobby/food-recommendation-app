@@ -2,29 +2,85 @@
 from pathlib import Path
 import random
 import json
-import numpy as np
 
 class FoodExplanationAI:
+    # Comprehensive mood-nutrient mapping based on Appendix A
+    MOOD_NUTRIENTS_MAP = {
+        "sad": {
+            "Polyunsaturated Fats": "Reduces inflammation and improves depressive symptoms, especially EPA is shown effective in RCTs.",
+            "Vitamin D": "Enhances serotonin synthesis through gene activation (TPH2), supports emotional recovery.",
+            "Protein": "Precursor to serotonin; when consumed with carbohydrates, increases serotonin availability in brain.",
+            "Vitamin B6": "Cofactors in synthesis of serotonin and dopamine; supplementation reduces depressive symptoms.",
+            "Vitamin B12": "Cofactors in synthesis of serotonin and dopamine; supplementation reduces depressive symptoms.",
+            "Magnesium": "Calms the nervous system, regulates GABA, and improves mood and sleep in depression.",
+            "Zinc": "Modulates NMDA receptors, reduces neuroinflammation, supports mood regulation and cognition."
+        },
+        "fear": {
+            "Magnesium": "Reduces stress and anxiety by regulating HPA axis and enhancing GABAergic activity.",
+            "Polyunsaturated Fats": "Decreases inflammation and cortisol; improves emotional resilience under chronic stress.",
+            "Vitamin B6": "Antioxidant; reduces oxidative stress and modulates cortisol and neurotransmitter synthesis.",
+            "Vitamin B12": "Antioxidant; reduces oxidative stress and modulates cortisol and neurotransmitter synthesis.",
+            "Vitamin C": "Improved symptoms in those with stress-related deficiencies."
+        },
+        "neutral": {
+            "Carbohydrates": "Provides steady glucose to support brain energy and stable mood.",
+            "Protein": "Supplies amino acids needed for neurotransmitter synthesis.",
+            "Vitamin B1": "Supports energy metabolism, brain cell function, and cognitive performance.",
+            "Vitamin B2": "Supports energy metabolism, brain cell function, and cognitive performance.",
+            "Vitamin B3": "Supports energy metabolism, brain cell function, and cognitive performance.",
+            "Vitamin B5": "Supports energy metabolism, brain cell function, and cognitive performance.",
+            "Vitamin B6": "Supports energy metabolism, brain cell function, and cognitive performance.",
+            "Vitamin B12": "Supports energy metabolism, brain cell function, and cognitive performance.",
+            "Magnesium": "Oxygen transport, energy production, supports neurological function and energy metabolism.",
+            "Zinc": "Oxygen transport, energy production, supports neurological function and energy metabolism.",
+            "Iron": "Supports oxygen delivery and enhances attention, memory, and cognitive function."
+        },
+        "happy": {
+            "Protein": "Provides tryptophan as a precursor to serotonin; supports mood elevation when consumed with carbohydrates.",
+            "Carbohydrates": "Boosts insulin, promotes tryptophan uptake in brain, thereby increasing serotonin synthesis.",
+            "Vitamin D": "Modulates serotonin production; associated with positive mood and emotional well-being.",
+            "Polyunsaturated Fats": "Regulates emotion, reduces cortisol, enhances mood stability and cognitive function.",
+            "Magnesium": "Regulates neurotransmitters; promotes calm, positive mood and reduces mild emotional imbalance."
+        },
+        "surprise": {
+            "Carbohydrates": "Provides immediate energy; enhances alertness and attention in response to novelty or stimulus.",
+            "Vitamin B1": "Supports energy metabolism and neurotransmitter synthesis under acute cognitive demand.",
+            "Vitamin B2": "Supports energy metabolism and neurotransmitter synthesis under acute cognitive demand.",
+            "Vitamin B3": "Supports energy metabolism and neurotransmitter synthesis under acute cognitive demand.",
+            "Vitamin B5": "Supports energy metabolism and neurotransmitter synthesis under acute cognitive demand.",
+            "Vitamin B6": "Supports energy metabolism and neurotransmitter synthesis under acute cognitive demand.",
+            "Vitamin B12": "Supports energy metabolism and neurotransmitter synthesis under acute cognitive demand.",
+            "Protein": "Provides tyrosine as a precursor for dopamine and norepinephrine, enhancing cognitive speed and motivation.",
+            "Vitamin C": "Modulate neuroimmune function; contribute to mood regulation and acute cognitive response.",
+            "Vitamin D": "Modulate neuroimmune function; contribute to mood regulation and acute cognitive response."
+        },
+        "disgust": {
+            "Dietary Fiber": "Improves gut motility, binds toxins, restores digestive comfort after visceral or food-related disgust.",
+            "Magnesium": "Calms visceral tension; may reduce nausea, gut reactivity and somatic response to aversive stimuli.",
+            "Zinc": "Supports mucosal healing, immune modulation, and gut-brain axis recovery after nausea/discomfort.",
+            "Vitamin B6": "Supports GABA synthesis; may alleviate visceral discomfort linked to disgust."
+        },
+        "angry": {
+            "Magnesium": "Calms the nervous system via GABA regulation; reduces excitability and stress-induced aggression.",
+            "Vitamin C": "Reduces oxidative stress and cortisol; supports adrenal balance under emotional reactivity."
+        }
+    }
+
     def __init__(self):
-        # Tải các mẫu giải thích và dữ liệu dinh dưỡng
+        # Load only the explanation templates - no need for nutritional_facts.json anymore
         template_path = Path(__file__).parent / "explanation_templates.json"
-        fact_path = Path(__file__).parent / "nutritional_facts.json"
         
         try:
             with open(template_path, 'r') as f:
                 self.templates = json.load(f)
-                
-            with open(fact_path, 'r') as f:
-                self.nutritional_facts = json.load(f)
             
             print("✅ Explanation AI loaded successfully")
         except Exception as e:
             print(f"❌ Error loading Explanation AI: {e}")
             self.templates = {}
-            self.nutritional_facts = {}
     
     def get_emotion_explanation(self, emotion):
-        """Tạo giải thích về mối liên hệ giữa cảm xúc và dinh dưỡng"""
+        """Generate explanation about the relationship between emotion and nutrition"""
         if emotion not in self.templates.get('emotions', {}):
             emotion = 'neutral'
             
@@ -35,44 +91,64 @@ class FoodExplanationAI:
         return random.choice(templates)
     
     def get_nutrient_explanation(self, nutrient, emotion):
-        """Tạo giải thích về tác dụng của chất dinh dưỡng đối với cảm xúc"""
-        emotion_nutrients = self.nutritional_facts.get('emotion_nutrients', {}).get(emotion, {})
-        general_facts = self.nutritional_facts.get('nutrients', {}).get(nutrient, [])
+        """Generate explanation about the effect of a nutrient on emotion based on Appendix A"""
+        emotion_lower = emotion.lower()
         
-        explanation = ""
+        if emotion_lower in self.MOOD_NUTRIENTS_MAP:
+            for nutrient_name, explanation in self.MOOD_NUTRIENTS_MAP[emotion_lower].items():
+                # Check if the nutrient matches or is contained in the nutrient name
+                if nutrient.lower() == nutrient_name.lower() or nutrient.lower() in nutrient_name.lower():
+                    return explanation
         
-        # Thêm tác dụng đặc thù với cảm xúc
-        if nutrient in emotion_nutrients:
-            explanation += random.choice(emotion_nutrients[nutrient])
-        
-        # Thêm thông tin tổng quát về chất dinh dưỡng
-        if general_facts:
-            if explanation:
-                explanation += " "
-            explanation += random.choice(general_facts)
-            
-        if not explanation:
-            explanation = f"{nutrient} is an important nutrient for your health."
-            
-        return explanation
+        # If no specific explanation is found, return a generic response
+        return f"{nutrient} is an important nutrient that can support your overall well-being."
     
-    def get_food_explanation(self, food_name, food_type, emotion, top_nutrients):
-        """Tạo giải thích về lý do tại sao món ăn này được đề xuất"""
+    def get_priority_nutrients_for_emotion(self, emotion, nutrition_data):
+        """Find priority nutrients for the given emotion from the food's nutrition data"""
+        priority_nutrients = []
+        emotion_lower = emotion.lower()
+        
+        if emotion_lower in self.MOOD_NUTRIENTS_MAP:
+            # Get the priority nutrients for this emotion
+            emotion_nutrients = self.MOOD_NUTRIENTS_MAP[emotion_lower]
+            
+            # Check which of these nutrients are present in the food
+            for nutrient_name in emotion_nutrients.keys():
+                # Look for an exact match or partial match in the nutrition data
+                for food_nutrient in nutrition_data.keys():
+                    if (nutrient_name.lower() == food_nutrient.lower() or 
+                        nutrient_name.lower() in food_nutrient.lower()):
+                        priority_nutrients.append({
+                            "name": food_nutrient,
+                            "value": nutrition_data[food_nutrient],
+                            "explanation": emotion_nutrients[nutrient_name]
+                        })
+                        break
+        
+        # Sort by nutrient values (higher values first)
+        priority_nutrients.sort(key=lambda x: x["value"], reverse=True)
+        
+        return priority_nutrients[:3]  # Return top 3 priority nutrients
+    
+    def get_food_explanation(self, food_name, food_type, emotion, priority_nutrients):
+        """Generate explanation for why this food is recommended"""
         templates = self.templates.get('food_recommendations', [])
         if not templates:
             return f"This {food_type} is recommended because it contains nutrients that may help with your {emotion} mood."
             
         template = random.choice(templates)
         
-        # Tạo danh sách chất dinh dưỡng dạng chuỗi (ví dụ: "Vitamin C, Magnesium, and Zinc")
-        if len(top_nutrients) == 1:
-            nutrient_text = top_nutrients[0]
-        elif len(top_nutrients) == 2:
-            nutrient_text = f"{top_nutrients[0]} and {top_nutrients[1]}"
+        # Create nutrient list as string (e.g., "Vitamin C, Magnesium, and Zinc")
+        nutrient_names = [n["name"] for n in priority_nutrients]
+        
+        if len(nutrient_names) == 1:
+            nutrient_text = nutrient_names[0]
+        elif len(nutrient_names) == 2:
+            nutrient_text = f"{nutrient_names[0]} and {nutrient_names[1]}"
         else:
-            nutrient_text = ", ".join(top_nutrients[:-1]) + f", and {top_nutrients[-1]}"
+            nutrient_text = ", ".join(nutrient_names[:-1]) + f", and {nutrient_names[-1]}"
             
-        # Điền vào template
+        # Fill in the template
         explanation = template.format(
             food_name=food_name,
             food_type=food_type,
@@ -82,8 +158,11 @@ class FoodExplanationAI:
         
         return explanation
     
-    def explain_recommendation(self, recommendation, user_data):
-        """Tạo giải thích tổng hợp cho đề xuất món ăn"""
+    @classmethod
+    def explain_recommendation(cls, recommendation, user_data):
+        """Generate comprehensive explanation for food recommendation"""
+        explainer = cls()
+        
         if not recommendation:
             return {
                 "error": "No recommendation provided to explain"
@@ -94,31 +173,29 @@ class FoodExplanationAI:
         emotion = user_data.get('emotion', 'neutral')
         nutrition_data = recommendation.get('nutrition_data', {})
         
-        # Tạo giải thích tổng quan
-        emotion_explanation = self.get_emotion_explanation(emotion)
+        # Generate overview explanation
+        emotion_explanation = explainer.get_emotion_explanation(emotion)
         
-        # Lấy top 3 chất dinh dưỡng quan trọng nhất
-        important_nutrients = list(nutrition_data.keys())[:3] if nutrition_data else []
+        # Get priority nutrients for this emotion from the food's nutrition data
+        priority_nutrients = explainer.get_priority_nutrients_for_emotion(emotion, nutrition_data)
         
-        # Tạo giải thích cho từng chất dinh dưỡng
-        nutrient_explanations = {}
-        for nutrient in important_nutrients:
-            nutrient_explanations[nutrient] = {
-                "value": nutrition_data.get(nutrient, 0),
-                "explanation": self.get_nutrient_explanation(nutrient, emotion)
-            }
-        
-        # Tạo giải thích cho món ăn
-        food_explanation = self.get_food_explanation(
-            food_name, food_type, emotion, important_nutrients
+        # Generate food explanation
+        food_explanation = explainer.get_food_explanation(
+            food_name, food_type, emotion, priority_nutrients
         )
         
-        # Tổng hợp kết quả
+        # Generate summary based on scientific data
+        scientific_summary = f"Based on nutritional research, {food_name} contains key nutrients that can positively impact your {emotion} state."
+        
+        if len(priority_nutrients) > 0:
+            scientific_summary += f" Specifically, {priority_nutrients[0]['name']} has been shown to {priority_nutrients[0]['explanation'].lower()[0].lower() + priority_nutrients[0]['explanation'].lower()[1:]}"
+        
+        # Compile results
         return {
             "food_name": food_name,
             "food_type": food_type,
             "emotion_explanation": emotion_explanation,
             "food_explanation": food_explanation,
-            "nutrient_explanations": nutrient_explanations,
-            "summary": f"This {food_type} can help improve your {emotion} mood because of its nutritional content."
+            "priority_nutrients": priority_nutrients,
+            "scientific_summary": scientific_summary
         }

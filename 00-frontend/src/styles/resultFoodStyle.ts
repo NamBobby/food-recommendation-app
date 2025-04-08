@@ -283,5 +283,141 @@ export const styles = StyleSheet.create({
     fontSize: 13,
     color: "#4B5563",
     lineHeight: 18,
+  },
+  // New styles for the explanation section
+  explanationSection: {
+    backgroundColor: "#F8F9FA",
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 16,
+    marginBottom: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: "#6EA9F7", // Will be dynamically colored based on emotion
+  },
+  explanationTitle: {
+    fontFamily: "Montserrat-SemiBold",
+    fontSize: 16,
+    marginBottom: 8,
+    color: "#1F2937",
+  },
+  explanationText: {
+    fontFamily: "Montserrat-Regular",
+    fontSize: 14,
+    lineHeight: 20,
+    color: "#4B5563",
+  },
+  scientificSummary: {
+    fontFamily: "Montserrat-Regular",
+    fontSize: 14,
+    lineHeight: 20,
+    fontStyle: "italic",
+    color: "#4B5563",
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: "#E5E7EB",
+  },
+  // New styles for priority nutrients list
+  priorityNutrientsContainer: {
+    marginTop: 16,
+    marginBottom: 16,
+  },
+  priorityNutrientItem: {
+    backgroundColor: "#F0F9FF",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+  },
+  priorityNutrientHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 4,
+  },
+  priorityNutrientName: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#1F2937",
+  },
+  priorityNutrientValue: {
+    fontSize: 12,
+    color: "#4B5563",
+    marginBottom: 4,
+  },
+  priorityNutrientShortDesc: {
+    fontSize: 12,
+    color: "#4B5563",
+    lineHeight: 16,
+  },
+  // Modal styles for detailed nutrient view
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    width: width * 0.9,
+    backgroundColor: "white",
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
+    padding: 16,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#1F2937",
+  },
+  modalCloseButton: {
+    padding: 4,
+  },
+  modalCloseText: {
+    fontSize: 14,
+    color: "#6B7280",
+  },
+  modalBody: {
+    padding: 16,
+  },
+  modalNutrientName: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#1F2937",
+    marginBottom: 4,
+  },
+  modalNutrientValue: {
+    fontSize: 14,
+    color: "#4B5563",
+    marginBottom: 16,
+  },
+  modalDivider: {
+    height: 1,
+    backgroundColor: "#E5E7EB",
+    marginVertical: 16,
+  },
+  modalSectionTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#1F2937",
+    marginBottom: 8,
+  },
+  modalExplanation: {
+    fontSize: 14,
+    color: "#4B5563",
+    lineHeight: 20,
+  },
+  modalResearch: {
+    fontSize: 14,
+    color: "#4B5563",
+    lineHeight: 20,
+    fontStyle: "italic",
   }
 });
