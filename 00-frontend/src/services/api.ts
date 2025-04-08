@@ -146,17 +146,6 @@ export const getFoodRecommendations = async (emotion: string, mealTime: string, 
   }
 };
 
-// Thêm API endpoint để lấy danh sách chất dinh dưỡng ưu tiên
-export const getPriorityNutrients = async (emotion: string) => {
-  try {
-    const response = await apiClient.get(`/api/food/get-priority-nutrients?emotion=${emotion}`);
-    return response.data.priority_nutrients;
-  } catch (error: any) {
-    console.error("❌ Priority Nutrients API Error:", error.response?.data || error.message);
-    return []; // Trả về mảng trống nếu có lỗi
-  }
-};
-
 // Explanation API endpoints
 export const getFoodExplanation = async (recommendation: any, emotion: string) => {
   try {

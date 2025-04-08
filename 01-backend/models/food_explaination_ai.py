@@ -108,27 +108,30 @@ class FoodExplanationAI:
         priority_nutrients = []
         emotion_lower = emotion.lower()
         
+        # Get the priority nutrients list from EMOTION_PRIORITY_NUTRIENTS
+        from models.food_recommendation_model import EMOTION_PRIORITY_NUTRIENTS
+        ordered_nutrients = EMOTION_PRIORITY_NUTRIENTS.get(emotion_lower, [])
+        
         if emotion_lower in self.MOOD_NUTRIENTS_MAP:
             # Get the priority nutrients for this emotion
             emotion_nutrients = self.MOOD_NUTRIENTS_MAP[emotion_lower]
             
-            # Check which of these nutrients are present in the food
-            for nutrient_name in emotion_nutrients.keys():
-                # Look for an exact match or partial match in the nutrition data
-                for food_nutrient in nutrition_data.keys():
-                    if (nutrient_name.lower() == food_nutrient.lower() or 
-                        nutrient_name.lower() in food_nutrient.lower()):
-                        priority_nutrients.append({
-                            "name": food_nutrient,
-                            "value": nutrition_data[food_nutrient],
-                            "explanation": emotion_nutrients[nutrient_name]
-                        })
-                        break
+            # Process nutrients in the order defined in EMOTION_PRIORITY_NUTRIENTS
+            for nutrient_name in ordered_nutrients:
+                if nutrient_name in emotion_nutrients:
+                    # Look for this nutrient in the food's nutrition data
+                    for food_nutrient in nutrition_data.keys():
+                        if (nutrient_name.lower() == food_nutrient.lower() or 
+                            nutrient_name.lower() in food_nutrient.lower()):
+                            priority_nutrients.append({
+                                "name": nutrient_name,  # Use the canonical name from the priority list
+                                "value": nutrition_data[food_nutrient],
+                                "explanation": emotion_nutrients[nutrient_name]
+                            })
+                            break
         
-        # Sort by nutrient values (higher values first)
-        priority_nutrients.sort(key=lambda x: x["value"], reverse=True)
-        
-        return priority_nutrients[:3]  # Return top 3 priority nutrients
+        # Return all priority nutrients in the correct order
+        return priority_nutrients
     
     def get_food_explanation(self, food_name, food_type, emotion, priority_nutrients):
         """Generate explanation for why this food is recommended"""

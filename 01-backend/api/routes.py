@@ -288,23 +288,6 @@ def rate_food():
     except Exception as e:
         print(f"❌ Error recording food rating: {e}")
         return jsonify({"error": "Failed to record food rating"}), 500
-    
-@food_api.route("/get-priority-nutrients", methods=["GET"])
-def get_priority_nutrients():
-    """API returns list of priority nutrients for each emotion"""
-    from models.food_recommendation_model import EMOTION_PRIORITY_NUTRIENTS
-    
-    emotion = request.args.get("emotion")
-    
-    if emotion and emotion.lower() in EMOTION_PRIORITY_NUTRIENTS:
-        nutrients = EMOTION_PRIORITY_NUTRIENTS[emotion.lower()]
-    else:
-        nutrients = {emotion: nutrients for emotion, nutrients in EMOTION_PRIORITY_NUTRIENTS.items()}
-    
-    return jsonify({
-        "status": "success",
-        "priority_nutrients": nutrients
-    })
 
 @explanation_api.route("/explain-recommendation", methods=["POST"])
 def explain_recommendation():

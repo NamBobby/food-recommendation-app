@@ -10,7 +10,6 @@ SUPPORTED_MEAL_TYPES = ['Breakfast', 'Lunch', 'Dinner', 'Snack']
 SUPPORTED_FOOD_TYPES = ['Fruits', 'Vegetables', 'Meat', 'Dairy', 'Grains', 'Snacks', 'Beverages']
 
 # Priority nutrients for each emotion - for API to return to frontend
-# Priority nutrients for each emotion - for API to return to frontend
 EMOTION_PRIORITY_NUTRIENTS = {
     'happy': ['Protein', 'Carbohydrates', 'Vitamin D', 'Polyunsaturated Fats', 'Magnesium'],
     'sad': [

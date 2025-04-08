@@ -26,8 +26,7 @@ import {
   getFoodRecommendations, 
   selectFood,
   rateFood,
-  getFoodExplanation,
-  getPriorityNutrients 
+  getFoodExplanation
 } from "../../services/api";
 import { styles } from "../../styles/resultFoodStyle";
 
@@ -238,16 +237,10 @@ const ResultFood: React.FC = () => {
 
   // Helper function to check if a nutrient is a priority
   const isPriorityNutrient = (nutrient: string) => {
-    if (!explanation || !explanation.priority_nutrients) {
-      // Fallback to priority nutrients array if explanation is not available
-      if (!priorityNutrients || priorityNutrients.length === 0) return false;
-      return priorityNutrients.some(
-        pn => nutrient.toLowerCase().includes(pn.toLowerCase())
-      );
-    }
+    if (!priorityNutrients || priorityNutrients.length === 0) return false;
     
-    return explanation.priority_nutrients.some(
-      pn => nutrient.toLowerCase() === pn.name.toLowerCase()
+    return priorityNutrients.some(
+      pn => nutrient.toLowerCase().includes(pn.toLowerCase())
     );
   };
 
@@ -258,6 +251,12 @@ const ResultFood: React.FC = () => {
     return explanation.priority_nutrients.find(
       pn => nutrient.toLowerCase() === pn.name.toLowerCase()
     );
+  };
+
+  // Function to get appropriate unit for a nutrient
+  const getNutrientUnit = (nutrientName: string) => {
+    if (nutrientName === "Caloric Value") return "kcal";
+    return "mg"; 
   };
 
   if (loading) {
@@ -346,38 +345,57 @@ const ResultFood: React.FC = () => {
             )}
             
             {/* Priority nutrients section - enhanced version */}
-            {explanation && explanation.priority_nutrients && explanation.priority_nutrients.length > 0 ? (
+            {priorityNutrients && priorityNutrients.length > 0 ? (
               <View style={styles.priorityNutrientsContainer}>
                 <Text style={[styles.priorityNutrientTitle, { color: getEmotionColor() }]}>
                   Key Nutrients for {emotion.charAt(0).toUpperCase() + emotion.slice(1)} Mood:
                 </Text>
                 
-                {explanation.priority_nutrients.map((nutrient, index) => (
-                  <TouchableOpacity 
-                    key={index} 
-                    style={styles.priorityNutrientItem}
-                    onPress={() => showNutrientDetail(nutrient)}
-                  >
-                    <View style={styles.priorityNutrientHeader}>
-                      <Text style={styles.priorityNutrientName}>{nutrient.name}</Text>
-                      <FontAwesomeIcon icon={faInfoCircle} size={16} color={getEmotionColor()} />
-                    </View>
-                    <Text style={styles.priorityNutrientValue}>
-                      {nutrient.value.toFixed(1)} mg
-                    </Text>
-                    <Text style={styles.priorityNutrientShortDesc} numberOfLines={2}>
-                      {nutrient.explanation}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                {priorityNutrients.map((nutrientName, index) => {
+                  // Find the nutrient data in the recommendation
+                  const nutrientKey = Object.keys(recommendation.nutrition_data).find(
+                    key => key.toLowerCase() === nutrientName.toLowerCase() ||
+                          key.toLowerCase().includes(nutrientName.toLowerCase())
+                  );
+                  
+                  if (!nutrientKey) return null;
+                  
+                  const nutrientValue = recommendation.nutrition_data[nutrientKey];
+                  const nutrientExp = explanation?.priority_nutrients?.find(pn => 
+                    pn.name.toLowerCase() === nutrientName.toLowerCase() ||
+                    pn.name.toLowerCase().includes(nutrientName.toLowerCase())
+                  );
+                  
+                  return (
+                    <TouchableOpacity 
+                      key={index} 
+                      style={styles.priorityNutrientItem}
+                      onPress={() => nutrientExp && showNutrientDetail(nutrientExp)}
+                      disabled={!nutrientExp}
+                    >
+                      <View style={styles.priorityNutrientHeader}>
+                        <Text style={styles.priorityNutrientName}>{nutrientName}</Text>
+                        {nutrientExp && (
+                          <FontAwesomeIcon icon={faInfoCircle} size={16} color={getEmotionColor()} />
+                        )}
+                      </View>
+                      <Text style={styles.priorityNutrientValue}>
+                        {typeof nutrientValue === 'number' ? nutrientValue.toFixed(1) : nutrientValue}
+                        {' '}{getNutrientUnit(nutrientKey)}
+                      </Text>
+                      {nutrientExp && (
+                        <Text style={styles.priorityNutrientShortDesc} numberOfLines={2}>
+                          {nutrientExp.explanation}
+                        </Text>
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
-            ) : !loadingExplanation && priorityNutrients.length > 0 && (
+            ) : !loadingNutrients && (
               <View style={styles.priorityNutrientSection}>
                 <Text style={[styles.priorityNutrientTitle, { color: getEmotionColor() }]}>
-                  Key Nutrients for {emotion.charAt(0).toUpperCase() + emotion.slice(1)} Mood:
-                </Text>
-                <Text style={styles.priorityNutrientDescription}>
-                  {priorityNutrients.join(', ')}
+                  No specific key nutrients found for this mood
                 </Text>
               </View>
             )}
@@ -420,13 +438,24 @@ const ResultFood: React.FC = () => {
           <View style={styles.nutrientsGrid}>
             {recommendation.nutrition_data && 
               Object.entries(recommendation.nutrition_data)
+                .filter(([name, _]) => name !== 'food' && name !== 'food_type')
                 .sort((a, b) => {
-                  // Sort priority nutrients first
-                  const aPriority = isPriorityNutrient(a[0]);
-                  const bPriority = isPriorityNutrient(b[0]);
+                  // Sort priority nutrients first based on their order in priorityNutrients array
+                  const aIndex = priorityNutrients.findIndex(n => 
+                    a[0].toLowerCase().includes(n.toLowerCase())
+                  );
+                  const bIndex = priorityNutrients.findIndex(n => 
+                    b[0].toLowerCase().includes(n.toLowerCase())
+                  );
                   
-                  if (aPriority && !bPriority) return -1;
-                  if (!aPriority && bPriority) return 1;
+                  // If both are priority nutrients, sort by their order in priorityNutrients
+                  if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+                  
+                  // If only one is a priority nutrient, it comes first
+                  if (aIndex !== -1) return -1;
+                  if (bIndex !== -1) return 1;
+                  
+                  // Otherwise sort alphabetically
                   return a[0].localeCompare(b[0]);
                 })
                 .map(([name, value], index) => {
@@ -446,7 +475,7 @@ const ResultFood: React.FC = () => {
                       <Text style={styles.nutrientName}>{name}</Text>
                       <Text style={styles.nutrientValue}>
                         {typeof value === 'number' ? value.toFixed(1) : value}
-                        <Text style={styles.nutrientUnit}>mg</Text>
+                        <Text style={styles.nutrientUnit}>{getNutrientUnit(name)}</Text>
                       </Text>
                       {isPriority && (
                         <Text style={[styles.priorityLabel, { color: getEmotionColor() }]}>
@@ -482,7 +511,7 @@ const ResultFood: React.FC = () => {
               <View style={styles.modalBody}>
                 <Text style={styles.modalNutrientName}>{selectedNutrient.name}</Text>
                 <Text style={styles.modalNutrientValue}>
-                  {selectedNutrient.value.toFixed(1)} mg in this {recommendation.type}
+                  {selectedNutrient.value.toFixed(1)} {getNutrientUnit(selectedNutrient.name)} in this {recommendation.type}
                 </Text>
                 
                 <View style={styles.modalDivider} />

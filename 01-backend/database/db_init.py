@@ -39,13 +39,6 @@ class UserFoodLog(db.Model):
     # Metadata
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
 
-# Bảng lưu hiệu quả của chất dinh dưỡng
-class NutrientEffectiveness(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    nutrient_name = db.Column(db.String(100))
-    linked_emotion = db.Column(db.String(50))
-    effectiveness = db.Column(db.Text)
-
 def seed_default_users():
     """Thêm tài khoản mặc định nếu chưa tồn tại"""
     admin_email = "admin@example.com"
