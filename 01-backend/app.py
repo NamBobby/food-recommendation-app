@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
 from database.config import Config
-from database.db_init import db  
+from database.db_init import db, init_db  # Import init_db function
 from api.routes import csv_api, auth_api, emotion_api, food_api, explanation_api
 
 app = Flask(__name__)
@@ -9,6 +9,10 @@ CORS(app)
 app.config.from_object(Config)
 
 db.init_app(app)  
+
+# Initialize database when app is created - this will run with 'flask run'
+with app.app_context():
+    init_db()
 
 app.register_blueprint(csv_api, url_prefix='/api/csv')
 app.register_blueprint(auth_api, url_prefix='/api/auth')
@@ -21,6 +25,5 @@ def home():
     return "✅ Flask & PostgreSQL & AI Model Connected Successfully!"
 
 if __name__ == "__main__":
-    with app.app_context():
-        db.create_all() 
+    # No need to call init_db() again here since it's called above
     app.run(host="0.0.0.0", port=5000, debug=True)

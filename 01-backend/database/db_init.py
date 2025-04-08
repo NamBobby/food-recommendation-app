@@ -9,7 +9,7 @@ app.config.from_object(Config)
 db = SQLAlchemy(app)
 
 # Check if we should drop all tables (for development/testing)
-RESET_DATABASE = os.getenv("RESET_DATABASE", "false").lower() == "false"
+RESET_DATABASE = False  
 
 # Bảng lưu thông tin người dùng
 class User(db.Model):
@@ -85,11 +85,14 @@ def init_db():
         print("⚠️ RESET_DATABASE is True - Dropping all tables...")
         db.drop_all()
         print("✅ All tables dropped successfully")
+    else:
+        print("ℹ️ RESET_DATABASE is False - Keeping existing tables")
     
     db.create_all()
     seed_default_users()
     print("✅ Database & Tables Created/Updated Successfully!")
 
+# This code runs when db_init.py is run directly
 if __name__ == "__main__":
     with app.app_context():
         init_db()
