@@ -16,6 +16,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
+  // Update the handleSignIn function in src/views/authPage/login.tsx
   const handleSignIn = async () => {
     if (!email || !password) {
       Alert.alert("Alert", "Please fill in all information.");
@@ -25,21 +26,26 @@ const Login = () => {
     try {
       const response = await loginUser(email, password);
       console.log("✅ Login Success:", response);
-  
-      // 🟢 Kiểm tra nếu `token` tồn tại trước khi lưu
+
+      // Save JWT token and user data
       if (response.token) {
         await AsyncStorage.setItem("token", response.token);
       } else {
         console.warn("⚠️ No token received from API.");
       }
-  
+
       await AsyncStorage.setItem("user", JSON.stringify(response.user));
-  
+
       Alert.alert("Success", "Login successful!");
-      navigation.navigate("Home"); // 🟢 Chuyển đến trang Home
+
+      // The navigation will be handled by the RootNavigator
+      // based on the user role stored in AsyncStorage
     } catch (error: any) {
       console.error("❌ Login Error:", error.message);
-      Alert.alert("Error", error.response?.data?.error || "Invalid email or password.");
+      Alert.alert(
+        "Error",
+        error.response?.data?.error || "Invalid email or password."
+      );
     }
   };
 
@@ -50,7 +56,9 @@ const Login = () => {
           <Text style={LoginStyle.textframe}>C & Y</Text>
         </View>
         <View style={LoginStyle.inputContainer}>
-          <Text style={LoginStyle.texttitle}>Please fill your details to sign in.</Text>
+          <Text style={LoginStyle.texttitle}>
+            Please fill your details to sign in.
+          </Text>
           <View style={LoginStyle.inputText}>
             <Text style={LoginStyle.text}>Email</Text>
             <View style={LoginStyle.inputframe}>
@@ -70,17 +78,27 @@ const Login = () => {
                 secureTextEntry={!showPassword}
                 onChangeText={setPassword}
               />
-              <TouchableOpacity style={LoginStyle.showPasswordButton} onPress={() => setShowPassword(!showPassword)}>
-                <FontAwesomeIcon icon={showPassword ? "eye" : "eye-slash"} size={25} color="#EDD8E9"/>
+              <TouchableOpacity
+                style={LoginStyle.showPasswordButton}
+                onPress={() => setShowPassword(!showPassword)}
+              >
+                <FontAwesomeIcon
+                  icon={showPassword ? "eye" : "eye-slash"}
+                  size={25}
+                  color="#EDD8E9"
+                />
               </TouchableOpacity>
             </View>
           </View>
-              <TouchableOpacity style={LoginStyle.buttonIn} onPress={handleSignIn}>
-                <Text style={LoginStyle.buttonText}>Sign In</Text>
-              </TouchableOpacity>
+          <TouchableOpacity style={LoginStyle.buttonIn} onPress={handleSignIn}>
+            <Text style={LoginStyle.buttonText}>Sign In</Text>
+          </TouchableOpacity>
         </View>
         <TouchableOpacity onPress={() => navigation.navigate("Register")}>
-          <Text style={LoginStyle.text}>Don't have an account? <Text style={LoginStyle.textsignIn}>Sign Up</Text></Text>
+          <Text style={LoginStyle.text}>
+            Don't have an account?{" "}
+            <Text style={LoginStyle.textsignIn}>Sign Up</Text>
+          </Text>
         </TouchableOpacity>
       </View>
     </View>

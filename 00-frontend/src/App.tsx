@@ -1,6 +1,6 @@
+// src/App.tsx
 import { registerRootComponent } from "expo";
 import { AppRegistry } from "react-native";
-import AppNavigator from "./navigations/AppNavigator";
 import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -15,7 +15,20 @@ import {
   faChartLine,
   faEye,
   faEyeSlash,
+  faUsers,
+  faCog,
+  faUtensils,
+  faSignOutAlt,
+  faPlus,
+  faTrash,
+  faEdit,
+  faFilter,
+  faSort,
+  faCheck,
+  faTimes
 } from "@fortawesome/free-solid-svg-icons";
+
+import RootNavigator from "./navigations/RootNavigator";
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -29,6 +42,7 @@ export default function App() {
     return null; 
   }
 
+  // Add all icons used in the app
   library.add(
     faHome,
     faArrowLeft,
@@ -39,10 +53,21 @@ export default function App() {
     faFloppyDisk,
     faChartLine,
     faEye,
-    faEyeSlash
+    faEyeSlash,
+    faUsers,
+    faCog,
+    faUtensils,
+    faSignOutAlt,
+    faPlus,
+    faTrash,
+    faEdit,
+    faFilter,
+    faSort,
+    faCheck,
+    faTimes
   );
 
-  return <AppNavigator />;
+  return <RootNavigator />;
 }
 
 registerRootComponent(App);

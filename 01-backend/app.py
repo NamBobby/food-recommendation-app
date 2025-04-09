@@ -2,7 +2,7 @@ from flask import Flask
 from flask_cors import CORS
 from database.config import Config
 from database.db_init import db, init_db  # Import init_db function
-from api.routes import auth_api, emotion_api, food_api, explanation_api
+from api.routes import auth_api, emotion_api, food_api, explanation_api, admin_api
 
 app = Flask(__name__)
 CORS(app)
@@ -18,6 +18,7 @@ app.register_blueprint(auth_api, url_prefix='/api/auth')
 app.register_blueprint(emotion_api, url_prefix='/api/emotion')
 app.register_blueprint(food_api, url_prefix='/api/food')
 app.register_blueprint(explanation_api, url_prefix='/api/explanation')
+app.register_blueprint(admin_api, url_prefix='/api/admin')
 
 @app.route("/")
 def home():

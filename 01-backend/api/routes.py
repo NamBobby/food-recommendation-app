@@ -8,11 +8,13 @@ from database.config import Config
 from models.mood_prediction_model import predict_emotion 
 from models.food_recommendation_model import get_food_recommendations, get_available_nutrients, personalized_recommendation
 from models.food_explaination_ai import FoodExplanationAI
+from middleware.admin_auth import admin_required
 
 auth_api = Blueprint("auth_api", __name__)
 emotion_api = Blueprint("emotion_api", __name__)
 food_api = Blueprint("food_api", __name__)
 explanation_api = Blueprint("explanation_api", __name__)
+admin_api = Blueprint("admin_api", __name__)
 
 # 🟢 Hàm tạo JWT token
 def create_jwt(user_id):
@@ -83,7 +85,6 @@ def login():
     if not user or not check_password_hash(user.password_hash, password):
         return jsonify({"error": "Invalid email or password"}), 401
 
-    # 🟢 Tạo JWT token hợp lệ
     token = create_jwt(user.id)
 
     return jsonify({
@@ -93,7 +94,7 @@ def login():
             "id": user.id,
             "name": user.name,
             "email": user.email,
-            "role": user.role
+            "role": user.role  
         }
     }), 200
 
@@ -364,3 +365,336 @@ def get_user_logs():
     except Exception as e:
         print(f"❌ Error fetching food logs: {e}")
         return jsonify({"error": "Failed to fetch food logs"}), 500
+
+# User Management Endpoints
+@admin_api.route("/users", methods=["GET"])
+@admin_required
+def get_all_users():
+    try:
+        users = User.query.all()
+        users_data = []
+        
+        for user in users:
+            users_data.append({
+                "id": user.id,
+                "name": user.name,
+                "email": user.email,
+                "role": user.role,
+                "date_of_birth": user.date_of_birth.strftime('%Y-%m-%d'),
+                "created_at": user.created_at.strftime('%Y-%m-%d %H:%M:%S') if hasattr(user, 'created_at') else None,
+                "status": "active"  # You might want to add a status field to your User model
+            })
+        
+        return jsonify({
+            "status": "success",
+            "users": users_data
+        })
+    except Exception as e:
+        print(f"Error fetching users: {e}")
+        return jsonify({"error": "Failed to fetch users"}), 500
+
+@admin_api.route("/users/<int:user_id>", methods=["GET"])
+@admin_required
+def get_user_details(user_id):
+    try:
+        user = User.query.get(user_id)
+        
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+            
+        # Get user's food logs
+        logs = UserFoodLog.query.filter_by(user_id=user_id).all()
+        logs_data = []
+        
+        for log in logs:
+            logs_data.append({
+                "id": log.id,
+                "date": log.created_at.strftime('%Y-%m-%d'),
+                "time": log.created_at.strftime('%H:%M'),
+                "meal_time": log.meal_time,
+                "food_type": log.food_type,
+                "recommended_food": log.recommended_food,
+                "emotion": log.mood,
+                "rating": log.feedback_rating if log.feedback_rating else 0
+            })
+        
+        user_data = {
+            "id": user.id,
+            "name": user.name,
+            "email": user.email,
+            "role": user.role,
+            "date_of_birth": user.date_of_birth.strftime('%Y-%m-%d'),
+            "created_at": user.created_at.strftime('%Y-%m-%d %H:%M:%S') if hasattr(user, 'created_at') else None,
+            "status": "active",  # You might want to add a status field to your User model
+            "logs": logs_data
+        }
+        
+        return jsonify({
+            "status": "success",
+            "user": user_data
+        })
+    except Exception as e:
+        print(f"Error fetching user details: {e}")
+        return jsonify({"error": "Failed to fetch user details"}), 500
+
+@admin_api.route("/users/<int:user_id>", methods=["PUT"])
+@admin_required
+def update_user(user_id):
+    try:
+        user = User.query.get(user_id)
+        
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+            
+        data = request.json
+        
+        # Update user fields
+        if "name" in data:
+            user.name = data["name"]
+            
+        if "email" in data:
+            # Check if email already exists
+            existing_user = User.query.filter_by(email=data["email"]).first()
+            if existing_user and existing_user.id != user_id:
+                return jsonify({"error": "Email already in use"}), 400
+            user.email = data["email"]
+            
+        if "role" in data and data["role"] in ["user", "admin"]:
+            user.role = data["role"]
+            
+        if "date_of_birth" in data:
+            try:
+                user.date_of_birth = datetime.strptime(data["date_of_birth"], '%Y-%m-%d').date()
+            except ValueError:
+                return jsonify({"error": "Invalid date format"}), 400
+        
+        # Save changes
+        db.session.commit()
+        
+        return jsonify({
+            "status": "success",
+            "message": "User updated successfully"
+        })
+    except Exception as e:
+        print(f"Error updating user: {e}")
+        return jsonify({"error": "Failed to update user"}), 500
+
+@admin_api.route("/users/<int:user_id>/reset-password", methods=["POST"])
+@admin_required
+def reset_user_password(user_id):
+    try:
+        user = User.query.get(user_id)
+        
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+            
+        # Generate a random password
+        import random
+        import string
+        new_password = ''.join(random.choices(string.ascii_letters + string.digits, k=10))
+        
+        # Hash the new password
+        hashed_password = generate_password_hash(new_password)
+        user.password_hash = hashed_password
+        
+        db.session.commit()
+        
+        # In a real application, you would send this password to the user's email
+        
+        return jsonify({
+            "status": "success",
+            "message": "Password reset successfully",
+            "new_password": new_password  # In production, you wouldn't return this
+        })
+    except Exception as e:
+        print(f"Error resetting password: {e}")
+        return jsonify({"error": "Failed to reset password"}), 500
+
+# Analytics Endpoints
+@admin_api.route("/dashboard-stats", methods=["GET"])
+@admin_required
+def get_dashboard_stats():
+    try:
+        # Count total users
+        total_users = User.query.count()
+        
+        # Count active users (users who have used the app in the last 30 days)
+        thirty_days_ago = datetime.now() - timedelta(days=30)
+        active_users = db.session.query(User.id).distinct().join(UserFoodLog).filter(
+            UserFoodLog.created_at >= thirty_days_ago
+        ).count()
+        
+        # Count total recommendations
+        total_recommendations = UserFoodLog.query.count()
+        
+        # Get emotion distribution
+        emotion_distribution = {}
+        emotions = db.session.query(UserFoodLog.mood, db.func.count(UserFoodLog.id)).group_by(
+            UserFoodLog.mood
+        ).all()
+        
+        for emotion, count in emotions:
+            emotion_distribution[emotion] = count
+        
+        # Get top rated foods
+        top_rated_foods = db.session.query(
+            UserFoodLog.recommended_food,
+            db.func.avg(UserFoodLog.feedback_rating).label('avg_rating'),
+            UserFoodLog.mood,
+            db.func.count(UserFoodLog.id).label('count')
+        ).filter(
+            UserFoodLog.feedback_rating.isnot(None)
+        ).group_by(
+            UserFoodLog.recommended_food, UserFoodLog.mood
+        ).order_by(
+            db.desc('avg_rating')
+        ).limit(5).all()
+        
+        top_foods_data = []
+        for food, rating, emotion, count in top_rated_foods:
+            top_foods_data.append({
+                "food": food,
+                "rating": float(rating),
+                "emotion": emotion,
+                "count": count
+            })
+        
+        return jsonify({
+            "status": "success",
+            "stats": {
+                "totalUsers": total_users,
+                "activeUsers": active_users,
+                "totalRecommendations": total_recommendations,
+                "emotionDistribution": emotion_distribution,
+                "topRatedFoods": top_foods_data
+            }
+        })
+    except Exception as e:
+        print(f"Error fetching dashboard stats: {e}")
+        return jsonify({"error": "Failed to fetch dashboard statistics"}), 500
+
+@admin_api.route("/food-trends", methods=["GET"])
+@admin_required
+def get_food_trends():
+    try:
+        # Get emotion filter from query params
+        emotion = request.args.get("emotion")
+        
+        # Base query
+        query = db.session.query(
+            UserFoodLog.recommended_food,
+            UserFoodLog.food_type,
+            UserFoodLog.meal_time,
+            UserFoodLog.mood,
+            db.func.avg(UserFoodLog.feedback_rating).label('avg_rating'),
+            db.func.count(UserFoodLog.id).label('count')
+        ).filter(
+            UserFoodLog.feedback_rating.isnot(None)
+        )
+        
+        # Apply emotion filter if provided
+        if emotion:
+            query = query.filter(UserFoodLog.mood == emotion)
+        
+        # Group and order
+        results = query.group_by(
+            UserFoodLog.recommended_food,
+            UserFoodLog.food_type,
+            UserFoodLog.meal_time,
+            UserFoodLog.mood
+        ).order_by(
+            db.desc('avg_rating')
+        ).all()
+        
+        trends_data = []
+        for food, food_type, meal_time, mood, rating, count in results:
+            trends_data.append({
+                "food": food,
+                "food_type": food_type,
+                "meal_time": meal_time,
+                "emotion": mood,
+                "rating": float(rating),
+                "count": count
+            })
+        
+        return jsonify({
+            "status": "success",
+            "trends": trends_data
+        })
+    except Exception as e:
+        print(f"Error fetching food trends: {e}")
+        return jsonify({"error": "Failed to fetch food trends"}), 500
+
+# System Configuration Endpoints
+@admin_api.route("/system-config", methods=["GET"])
+@admin_required
+def get_system_config():
+    # In a real application, you would store these in a database
+    config = {
+        "recommendation_algorithm": {
+            "emotion_weight": 0.7,
+            "user_preference_weight": 0.3,
+            "min_rating_threshold": 3.5
+        },
+        "notification_settings": {
+            "new_users_notification": True,
+            "low_rating_alert": True,
+            "daily_report": False
+        },
+        "data_retention": {
+            "log_retention_days": 365,
+            "user_inactivity_threshold_days": 90
+        }
+    }
+    
+    return jsonify({
+        "status": "success",
+        "config": config
+    })
+
+@admin_api.route("/users/<int:user_id>", methods=["DELETE"])
+@admin_required
+def delete_user(user_id):
+    try:
+        user = User.query.get(user_id)
+        
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+            
+        # Check if trying to delete admin user (you may want to prevent this)
+        if user.role == "admin":
+            # Option 1: Prevent deleting admin users
+            admin_count = User.query.filter_by(role="admin").count()
+            if admin_count <= 1:
+                return jsonify({"error": "Cannot delete the only admin user"}), 400
+        
+        # Delete all related food logs first (assuming cascade delete is not set up)
+        UserFoodLog.query.filter_by(user_id=user_id).delete()
+        
+        # Delete the user
+        db.session.delete(user)
+        db.session.commit()
+        
+        return jsonify({
+            "status": "success",
+            "message": "User deleted successfully"
+        })
+    except Exception as e:
+        print(f"Error deleting user: {e}")
+        return jsonify({"error": "Failed to delete user"}), 500
+
+@admin_api.route("/system-config", methods=["PUT"])
+@admin_required
+def update_system_config():
+    try:
+        data = request.json
+        
+        # In a real application, you would validate and save these to a database
+        
+        return jsonify({
+            "status": "success",
+            "message": "System configuration updated successfully"
+        })
+    except Exception as e:
+        print(f"Error updating system config: {e}")
+        return jsonify({"error": "Failed to update system configuration"}), 500
