@@ -323,7 +323,21 @@ const styles = StyleSheet.create({
   legendText: {
     fontSize: 12,
     color: '#6B7280',
-  }
+  },
+  refreshButton: {
+    backgroundColor: '#6EA9F7',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    margin: 16,
+    marginTop: 0,
+  },
+  refreshButtonText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 14,
+  },
 });
 
 export default styles;

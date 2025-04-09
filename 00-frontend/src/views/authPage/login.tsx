@@ -1,51 +1,37 @@
+// src/views/authPage/login.tsx
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from "react-native";
 import LoginStyle from "../../styles/loginStyle";
 import { useNavigation } from "@react-navigation/native";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { StackNavigationProp } from "@react-navigation/stack";
-import { loginUser } from "../../services/api";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { RootStackParamList } from "../../navigations/AppNavigator";
+import { useAuth } from "../../context/AuthContext";
 
-type NavigationProps = StackNavigationProp<RootStackParamList, "Login">;
+// Định nghĩa các route có trong AuthNavigator
+type AuthStackParamList = {
+  Login: undefined;
+  Register: undefined;
+};
+
+type LoginScreenNavigationProp = StackNavigationProp<AuthStackParamList, "Login">;
 
 const Login = () => {
-  const navigation = useNavigation<NavigationProps>();
+  const navigation = useNavigation<LoginScreenNavigationProp>();
+  const { login, isLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  // Update the handleSignIn function in src/views/authPage/login.tsx
   const handleSignIn = async () => {
     if (!email || !password) {
-      Alert.alert("Alert", "Please fill in all information.");
+      alert("Please fill in all information.");
       return;
     }
 
     try {
-      const response = await loginUser(email, password);
-      console.log("✅ Login Success:", response);
-
-      // Save JWT token and user data
-      if (response.token) {
-        await AsyncStorage.setItem("token", response.token);
-      } else {
-        console.warn("⚠️ No token received from API.");
-      }
-
-      await AsyncStorage.setItem("user", JSON.stringify(response.user));
-
-      Alert.alert("Success", "Login successful!");
-
-      // The navigation will be handled by the RootNavigator
-      // based on the user role stored in AsyncStorage
-    } catch (error: any) {
-      console.error("❌ Login Error:", error.message);
-      Alert.alert(
-        "Error",
-        error.response?.data?.error || "Invalid email or password."
-      );
+      await login(email, password);
+    } catch (error) {
+      console.log("Login failed:", error);
     }
   };
 
@@ -66,6 +52,9 @@ const Login = () => {
                 style={LoginStyle.input}
                 placeholder="Email"
                 onChangeText={setEmail}
+                value={email}
+                autoCapitalize="none"
+                keyboardType="email-address"
               />
             </View>
           </View>
@@ -77,6 +66,7 @@ const Login = () => {
                 placeholder="Password"
                 secureTextEntry={!showPassword}
                 onChangeText={setPassword}
+                value={password}
               />
               <TouchableOpacity
                 style={LoginStyle.showPasswordButton}
@@ -90,8 +80,16 @@ const Login = () => {
               </TouchableOpacity>
             </View>
           </View>
-          <TouchableOpacity style={LoginStyle.buttonIn} onPress={handleSignIn}>
-            <Text style={LoginStyle.buttonText}>Sign In</Text>
+          <TouchableOpacity 
+            style={[LoginStyle.buttonIn, isLoading && { opacity: 0.7 }]} 
+            onPress={handleSignIn}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="white" size="small" />
+            ) : (
+              <Text style={LoginStyle.buttonText}>Sign In</Text>
+            )}
           </TouchableOpacity>
         </View>
         <TouchableOpacity onPress={() => navigation.navigate("Register")}>

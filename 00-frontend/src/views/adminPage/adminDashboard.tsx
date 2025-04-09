@@ -149,6 +149,12 @@ const AdminDashboard: React.FC = () => {
     );
   }
 
+  // Handle navigation to nested screens within the TabNavigator
+  const navigateToTab = (tabName: string) => {
+    // @ts-ignore - This is a workaround for the navigation type issue
+    navigation.navigate(tabName);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -266,28 +272,6 @@ const AdminDashboard: React.FC = () => {
                     ((stats.activeUsers / stats.totalUsers) * 100).toFixed(1) + '%' 
                     : 'N/A'}
                 </Text>
-              </View>
-            </View>
-
-            {/* Quick Links */}
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Quick Access</Text>
-              <View style={styles.quickLinksContainer}>
-                <TouchableOpacity 
-                  style={styles.quickLinkButton}
-                  onPress={() => navigation.navigate('UserManagement')}
-                >
-                  <FontAwesomeIcon icon={faUsers} size={20} color="white" />
-                  <Text style={styles.quickLinkText}>User Management</Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity 
-                  style={[styles.quickLinkButton, { backgroundColor: '#FF5A63' }]}
-                  onPress={() => navigation.navigate('FoodTrends')}
-                >
-                  <FontAwesomeIcon icon={faUtensils} size={20} color="white" />
-                  <Text style={styles.quickLinkText}>Food Trends</Text>
-                </TouchableOpacity>
               </View>
             </View>
           </>

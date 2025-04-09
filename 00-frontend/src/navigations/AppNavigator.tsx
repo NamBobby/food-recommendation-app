@@ -3,8 +3,6 @@ import { createStackNavigator } from "@react-navigation/stack";
 import { NavigationContainer } from "@react-navigation/native";
 
 import Home from "../views/homePage/homePage";
-import Login from "../views/authPage/login";
-import Register from "../views/authPage/register";
 import Shooting from "../views/shootingPage/shootingPage";
 import Result from "../views/shootingPage/resultPage";
 import Tracking from "../views/trackingPage/trackingPage";
@@ -12,9 +10,6 @@ import ChoosingPref from "../views/recommendPage/choosingPref";
 import ResultFood from "../views/recommendPage/resultFood";
 
 export type RootStackParamList = {
-    Login: undefined;
-    Register: undefined;
-    FoodList: undefined;
     Home: undefined;
     Shooting: undefined;
     Result: undefined;
@@ -25,12 +20,10 @@ export type RootStackParamList = {
 
 const Stack = createStackNavigator<RootStackParamList>();
 
-export default function AppNavigator(): React.ReactElement {
+const AppNavigator: React.FC = () => {
     return (
         <NavigationContainer>
-            <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="Login" component={Login} />
-                <Stack.Screen name="Register" component={Register} />
+            <Stack.Navigator initialRouteName="Home" screenOptions={{ headerShown: false }}>
                 <Stack.Screen name="Home" component={Home} />
                 <Stack.Screen name="Shooting" component={Shooting} />
                 <Stack.Screen name="Result" component={Result} />
@@ -40,4 +33,6 @@ export default function AppNavigator(): React.ReactElement {
             </Stack.Navigator>
         </NavigationContainer>
     );
-}
+};
+
+export default AppNavigator;

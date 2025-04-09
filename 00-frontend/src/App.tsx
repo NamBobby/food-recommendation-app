@@ -28,6 +28,8 @@ import {
   faTimes
 } from "@fortawesome/free-solid-svg-icons";
 
+import { AuthProvider } from './context/AuthContext';
+import AppContainer from './AppContainer';
 import RootNavigator from "./navigations/RootNavigator";
 
 export default function App() {
@@ -55,7 +57,6 @@ export default function App() {
     faEye,
     faEyeSlash,
     faUsers,
-    faCog,
     faUtensils,
     faSignOutAlt,
     faPlus,
@@ -67,7 +68,11 @@ export default function App() {
     faTimes
   );
 
-  return <RootNavigator />;
+  return (
+    <AuthProvider>
+      <AppContainer />
+    </AuthProvider>
+  );
 }
 
 registerRootComponent(App);

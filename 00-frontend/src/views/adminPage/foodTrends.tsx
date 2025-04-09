@@ -1,14 +1,11 @@
-// src/views/adminPage/foodTrends.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
-  ScrollView,
   TouchableOpacity,
   ActivityIndicator,
   SafeAreaView,
   RefreshControl,
-  Dimensions
 } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faFilter, faChartBar, faList, faLightbulb } from '@fortawesome/free-solid-svg-icons';
@@ -89,14 +86,56 @@ const FoodTrends: React.FC = () => {
     setFoodTypeFilter('all');
   };
 
-  if (loading && !refreshing) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#6EA9F7" />
-        <Text style={styles.loadingText}>Loading food trends...</Text>
-      </View>
-    );
-  }
+  // Instead of using ScrollView and nesting components, we'll conditionally render
+  // the active component directly to avoid nesting VirtualizedLists
+  const renderActiveContent = () => {
+    if (error) {
+      return (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      );
+    }
+
+    if (loading && !refreshing) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#6EA9F7" />
+          <Text style={styles.loadingText}>Loading food trends...</Text>
+        </View>
+      );
+    }
+
+    switch (activeTab) {
+      case 'chart':
+        return (
+          <View style={styles.sectionContainer}>
+            <FoodTrendCharts filteredTrends={filteredTrends} />
+          </View>
+        );
+      case 'list':
+        return (
+          <View style={styles.sectionContainer}>
+            <FoodTrendList 
+              filteredTrends={filteredTrends} 
+              // This is where we'd handle the refresh control directly in FoodTrendList
+              // if needed. For now, we're using the separate button.
+            />
+          </View>
+        );
+      case 'insights':
+        return (
+          <View style={styles.sectionContainer}>
+            <FoodTrendInsights 
+              filteredTrends={filteredTrends} 
+              emotionFilter={emotionFilter} 
+            />
+          </View>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -166,36 +205,19 @@ const FoodTrends: React.FC = () => {
           </Text>
         </TouchableOpacity>
       </View>
+      {renderActiveContent()}
 
-      <ScrollView
-        style={styles.scrollView}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-      >
-        {error ? (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
-          </View>
-        ) : (
-          <View style={styles.sectionContainer}>
-            {activeTab === 'chart' && (
-              <FoodTrendCharts filteredTrends={filteredTrends} />
-            )}
-            
-            {activeTab === 'list' && (
-              <FoodTrendList filteredTrends={filteredTrends} />
-            )}
-            
-            {activeTab === 'insights' && (
-              <FoodTrendInsights 
-                filteredTrends={filteredTrends} 
-                emotionFilter={emotionFilter} 
-              />
-            )}
-          </View>
-        )}
-      </ScrollView>
+      {!loading && (
+        <TouchableOpacity
+          style={styles.refreshButton}
+          onPress={onRefresh}
+          disabled={refreshing}
+        >
+          <Text style={styles.refreshButtonText}>
+            {refreshing ? 'Refreshing...' : 'Refresh Data'}
+          </Text>
+        </TouchableOpacity>
+      )}
 
       {/* Filter Modal */}
       <FoodTrendFilters

@@ -6,31 +6,48 @@ import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import {
   faUsers,
   faChartLine,
-  faCog,
   faUtensils,
+  faSignOutAlt
 } from "@fortawesome/free-solid-svg-icons";
 
-// Admin screens (we'll create these files next)
+// Admin screens
 import AdminDashboard from "../views/adminPage/adminDashboard";
 import UserManagement from "../views/adminPage/userManagement";
 import FoodTrends from "../views/adminPage/foodTrends";
-import SystemSettings from "../views/adminPage/systemSettings";
 import UserDetails from "../views/adminPage/userDetails";
-
-// Auth screens
-import Login from "../views/authPage/login";
+import { useAuth } from "../context/AuthContext";
+import { TouchableOpacity, Text, View } from "react-native";
 
 export type AdminStackParamList = {
   AdminTabs: undefined;
   UserDetails: { userId: number };
-  Login: undefined;
 };
 
 const Stack = createStackNavigator<AdminStackParamList>();
 const Tab = createBottomTabNavigator();
 
+// Empty component for the logout tab
+const EmptyComponent: React.FC = () => <View />;
+
+// Custom tab button component to handle logout
+const LogoutTabButton: React.FC<{ onPress: () => void }> = ({ onPress }) => (
+  <TouchableOpacity
+    onPress={onPress}
+    style={{
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    }}
+  >
+    <FontAwesomeIcon icon={faSignOutAlt} size={24} color="#FF5A63" />
+    <Text style={{ fontSize: 10, color: "#999", marginTop: 2 }}>Logout</Text>
+  </TouchableOpacity>
+);
+
 // Admin Tab Navigator component
 const AdminTabNavigator = () => {
+  const { logout } = useAuth();
+  
   return (
     <Tab.Navigator
       screenOptions={{
@@ -75,11 +92,19 @@ const AdminTabNavigator = () => {
         }}
       />
       <Tab.Screen
-        name="Settings"
-        component={SystemSettings}
+        name="Logout"
+        component={EmptyComponent}
+        listeners={{
+          tabPress: (e) => {
+            // Prevent default action
+            e.preventDefault();
+            // Custom logout action
+            logout();
+          },
+        }}
         options={{
           tabBarIcon: ({ color, size }) => (
-            <FontAwesomeIcon icon={faCog} size={size} color={color} />
+            <FontAwesomeIcon icon={faSignOutAlt} size={size} color="#FF5A63" />
           ),
         }}
       />
@@ -88,19 +113,22 @@ const AdminTabNavigator = () => {
 };
 
 // Main Admin Stack Navigator
-export default function AdminNavigator(): React.ReactElement {
+const AdminNavigator: React.FC = () => {
   return (
-    <Stack.Navigator
-      initialRouteName="AdminTabs"
-      screenOptions={{ headerShown: false }}
-    >
-      <Stack.Screen name="AdminTabs" component={AdminTabNavigator} />
-      <Stack.Screen
-        name="UserDetails"
-        component={UserDetails}
-        options={{ headerShown: true, title: "User Details" }}
-      />
-      <Stack.Screen name="Login" component={Login} />
-    </Stack.Navigator>
+    <NavigationContainer>
+      <Stack.Navigator
+        initialRouteName="AdminTabs"
+        screenOptions={{ headerShown: false }}
+      >
+        <Stack.Screen name="AdminTabs" component={AdminTabNavigator} />
+        <Stack.Screen
+          name="UserDetails"
+          component={UserDetails}
+          options={{ headerShown: true, title: "User Details" }}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
-}
+};
+
+export default AdminNavigator;

@@ -8,7 +8,11 @@ from database.config import Config
 from models.mood_prediction_model import predict_emotion 
 from models.food_recommendation_model import get_food_recommendations, get_available_nutrients, personalized_recommendation
 from models.food_explaination_ai import FoodExplanationAI
+from middleware.auth_utils import get_user_from_token
 from middleware.admin_auth import admin_required
+
+# Create the admin_required decorator with needed context
+admin_auth = admin_required(Config.JWT_SECRET, User)
 
 auth_api = Blueprint("auth_api", __name__)
 emotion_api = Blueprint("emotion_api", __name__)
@@ -26,20 +30,15 @@ def create_jwt(user_id):
     token = jwt.encode(payload, Config.JWT_SECRET, algorithm="HS256")
     return token
 
-def get_user_from_token(token):
-    """Get user from JWT token"""
-    try:
-        payload = jwt.decode(token, Config.JWT_SECRET, algorithms=["HS256"])
-        user_id = payload.get("user_id")
-        if not user_id:
-            return None
-        
-        user = User.query.get(user_id)
-        return user
-    except jwt.ExpiredSignatureError:
+# Modified get_user_from_token function - using the utility version
+def get_user_from_request_token():
+    """Get user from JWT token in the request"""
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
         return None
-    except jwt.InvalidTokenError:
-        return None
+    
+    token = auth_header.split(" ")[1]
+    return get_user_from_token(token, Config.JWT_SECRET, User)
 
 @auth_api.route("/register", methods=["POST"])
 def register():
@@ -136,12 +135,7 @@ def get_food_types():
 @food_api.route("/recommend-food", methods=["POST"])
 def recommend_food():
     """API returns food recommendations based on emotion and user info"""
-    auth_header = request.headers.get("Authorization")
-    if not auth_header or not auth_header.startswith("Bearer "):
-        return jsonify({"error": "Authentication required"}), 401
-    
-    token = auth_header.split(" ")[1]
-    user = get_user_from_token(token)
+    user = get_user_from_request_token()
     
     if not user:
         return jsonify({"error": "Invalid or expired token"}), 401
@@ -209,12 +203,7 @@ def recommend_food():
 @food_api.route("/select-food", methods=["POST"])
 def select_food():
     """API records the food selected by the user"""
-    auth_header = request.headers.get("Authorization")
-    if not auth_header or not auth_header.startswith("Bearer "):
-        return jsonify({"error": "Authentication required"}), 401
-    
-    token = auth_header.split(" ")[1]
-    user = get_user_from_token(token)
+    user = get_user_from_request_token()
     
     if not user:
         return jsonify({"error": "Invalid or expired token"}), 401
@@ -249,12 +238,7 @@ def select_food():
 @food_api.route("/rate-food", methods=["POST"])
 def rate_food():
     """API records user rating for a food recommendation"""
-    auth_header = request.headers.get("Authorization")
-    if not auth_header or not auth_header.startswith("Bearer "):
-        return jsonify({"error": "Authentication required"}), 401
-    
-    token = auth_header.split(" ")[1]
-    user = get_user_from_token(token)
+    user = get_user_from_request_token()
     
     if not user:
         return jsonify({"error": "Invalid or expired token"}), 401
@@ -292,12 +276,7 @@ def rate_food():
 @explanation_api.route("/explain-recommendation", methods=["POST"])
 def explain_recommendation():
     """API giải thích chi tiết và đa dạng tại sao món ăn được đề xuất"""
-    auth_header = request.headers.get("Authorization")
-    if not auth_header or not auth_header.startswith("Bearer "):
-        return jsonify({"error": "Authentication required"}), 401
-    
-    token = auth_header.split(" ")[1]
-    user = get_user_from_token(token)
+    user = get_user_from_request_token()
     
     if not user:
         return jsonify({"error": "Invalid or expired token"}), 401
@@ -326,12 +305,7 @@ def explain_recommendation():
 @food_api.route("/get-user-logs", methods=["GET"])
 def get_user_logs():
     """API returns food recommendation history for the user"""
-    auth_header = request.headers.get("Authorization")
-    if not auth_header or not auth_header.startswith("Bearer "):
-        return jsonify({"error": "Authentication required"}), 401
-    
-    token = auth_header.split(" ")[1]
-    user = get_user_from_token(token)
+    user = get_user_from_request_token()
     
     if not user:
         return jsonify({"error": "Invalid or expired token"}), 401
@@ -368,7 +342,7 @@ def get_user_logs():
 
 # User Management Endpoints
 @admin_api.route("/users", methods=["GET"])
-@admin_required
+@admin_auth
 def get_all_users():
     try:
         users = User.query.all()
@@ -394,7 +368,7 @@ def get_all_users():
         return jsonify({"error": "Failed to fetch users"}), 500
 
 @admin_api.route("/users/<int:user_id>", methods=["GET"])
-@admin_required
+@admin_auth
 def get_user_details(user_id):
     try:
         user = User.query.get(user_id)
@@ -438,7 +412,7 @@ def get_user_details(user_id):
         return jsonify({"error": "Failed to fetch user details"}), 500
 
 @admin_api.route("/users/<int:user_id>", methods=["PUT"])
-@admin_required
+@admin_auth
 def update_user(user_id):
     try:
         user = User.query.get(user_id)
@@ -480,7 +454,7 @@ def update_user(user_id):
         return jsonify({"error": "Failed to update user"}), 500
 
 @admin_api.route("/users/<int:user_id>/reset-password", methods=["POST"])
-@admin_required
+@admin_auth
 def reset_user_password(user_id):
     try:
         user = User.query.get(user_id)
@@ -512,7 +486,7 @@ def reset_user_password(user_id):
 
 # Analytics Endpoints
 @admin_api.route("/dashboard-stats", methods=["GET"])
-@admin_required
+@admin_auth
 def get_dashboard_stats():
     try:
         # Count total users
@@ -574,7 +548,7 @@ def get_dashboard_stats():
         return jsonify({"error": "Failed to fetch dashboard statistics"}), 500
 
 @admin_api.route("/food-trends", methods=["GET"])
-@admin_required
+@admin_auth
 def get_food_trends():
     try:
         # Get emotion filter from query params
@@ -626,34 +600,8 @@ def get_food_trends():
         return jsonify({"error": "Failed to fetch food trends"}), 500
 
 # System Configuration Endpoints
-@admin_api.route("/system-config", methods=["GET"])
-@admin_required
-def get_system_config():
-    # In a real application, you would store these in a database
-    config = {
-        "recommendation_algorithm": {
-            "emotion_weight": 0.7,
-            "user_preference_weight": 0.3,
-            "min_rating_threshold": 3.5
-        },
-        "notification_settings": {
-            "new_users_notification": True,
-            "low_rating_alert": True,
-            "daily_report": False
-        },
-        "data_retention": {
-            "log_retention_days": 365,
-            "user_inactivity_threshold_days": 90
-        }
-    }
-    
-    return jsonify({
-        "status": "success",
-        "config": config
-    })
-
 @admin_api.route("/users/<int:user_id>", methods=["DELETE"])
-@admin_required
+@admin_auth
 def delete_user(user_id):
     try:
         user = User.query.get(user_id)
@@ -682,19 +630,3 @@ def delete_user(user_id):
     except Exception as e:
         print(f"Error deleting user: {e}")
         return jsonify({"error": "Failed to delete user"}), 500
-
-@admin_api.route("/system-config", methods=["PUT"])
-@admin_required
-def update_system_config():
-    try:
-        data = request.json
-        
-        # In a real application, you would validate and save these to a database
-        
-        return jsonify({
-            "status": "success",
-            "message": "System configuration updated successfully"
-        })
-    except Exception as e:
-        print(f"Error updating system config: {e}")
-        return jsonify({"error": "Failed to update system configuration"}), 500

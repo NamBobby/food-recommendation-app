@@ -2,18 +2,14 @@ import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import styles from "../../styles/userInfoStyle";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useNavigation } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
-import { RootStackParamList } from "../../navigations/AppNavigator";
+import { useAuth } from "../../context/AuthContext";
 
 interface UserInfoProps {}
 
-type UserInfoNavigationProp = StackNavigationProp<RootStackParamList, "Login">;
-
 const UserInfo: React.FC<UserInfoProps> = () => {
-  const navigation = useNavigation<UserInfoNavigationProp>();
   const [userName, setUserName] = useState<string>("Guest");
   const [showSignOutButton, setShowSignOutButton] = useState(false);
+  const { logout } = useAuth();
 
   // Lấy thông tin người dùng từ AsyncStorage
   useEffect(() => {
@@ -32,15 +28,8 @@ const UserInfo: React.FC<UserInfoProps> = () => {
     fetchUserData();
   }, []);
 
-  // Xử lý đăng xuất: Xóa token và user, chuyển về Login
-  const handleSignOut = async () => {
-    try {
-      await AsyncStorage.removeItem("token");
-      await AsyncStorage.removeItem("user");
-      navigation.navigate("Login");
-    } catch (error) {
-      console.error("❌ Error during sign out:", error);
-    }
+  const handleLogout = () => {
+    logout();
   };
 
   return (
@@ -52,7 +41,7 @@ const UserInfo: React.FC<UserInfoProps> = () => {
         <Text style={styles.userName}>{userName}</Text>
       </TouchableOpacity>
       {showSignOutButton && (
-        <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
+        <TouchableOpacity style={styles.signOutButton} onPress={handleLogout}>
           <Text style={styles.signOutButtonText}>Sign Out</Text>
         </TouchableOpacity>
       )}

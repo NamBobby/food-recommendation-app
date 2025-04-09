@@ -5,9 +5,15 @@ import { FoodTrendItem, getEmotionColor } from './types';
 
 interface FoodTrendListProps {
   filteredTrends: FoodTrendItem[];
+  onScroll?: (event: any) => void; 
+  scrollEnabled?: boolean; 
 }
 
-const FoodTrendList: React.FC<FoodTrendListProps> = ({ filteredTrends }) => {
+const FoodTrendList: React.FC<FoodTrendListProps> = ({ 
+  filteredTrends, 
+  onScroll,
+  scrollEnabled = true 
+}) => {
   if (filteredTrends.length === 0) {
     return (
       <View style={styles.noDataContainer}>
@@ -45,6 +51,8 @@ const FoodTrendList: React.FC<FoodTrendListProps> = ({ filteredTrends }) => {
         </View>
       )}
       style={{ marginTop: 8 }}
+      scrollEnabled={scrollEnabled}
+      onScroll={onScroll} 
     />
   );
 };
