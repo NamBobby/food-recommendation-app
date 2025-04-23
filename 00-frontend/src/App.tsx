@@ -30,7 +30,6 @@ import {
 
 import { AuthProvider } from './context/AuthContext';
 import AppContainer from './AppContainer';
-import RootNavigator from "./navigations/RootNavigator";
 
 export default function App() {
   const [fontsLoaded] = useFonts({
