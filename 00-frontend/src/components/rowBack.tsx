@@ -15,7 +15,7 @@ const Row: React.FC = () => {
     <View style={RowStyle.backmenu}>
       <TouchableOpacity onPress={() => navigation.goBack()}>
         <View style={RowStyle.rectangleA}>
-          <FontAwesomeIcon icon="arrow-left" size={30} color="#EDD8E9" />
+          <FontAwesomeIcon icon="arrow-left" size={40} color="#E39F0C" />
         </View>
       </TouchableOpacity>
     </View>

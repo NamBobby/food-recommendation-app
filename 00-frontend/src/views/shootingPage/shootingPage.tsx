@@ -15,9 +15,8 @@ import {
   faImage,
 } from "@fortawesome/free-solid-svg-icons";
 import Row from "../../components/rowHome";
-import UserInfo from "../userPage/userInfo";
 
-const facescan = require("../../assets/image/face-scan.png");
+const facescan = require("../../assets/image/facescan.gif");
 
 type ShootingNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -61,12 +60,12 @@ const Shooting: React.FC = () => {
     }
 
     if (!isOpenCamera) {
-      setIsOpenCamera(true); // ✅ Nếu camera chưa mở, chỉ mở mà không chụp
+      setIsOpenCamera(true);
       return;
     }
 
     if (cameraRef.current && !isTakingPhoto) {
-      setIsTakingPhoto(true); // ✅ Đánh dấu đang chụp ảnh để tránh chụp liên tục
+      setIsTakingPhoto(true);
       const photo = await cameraRef.current.takePictureAsync({ base64: true });
 
       if (!photo || !photo.base64) {
@@ -80,7 +79,7 @@ const Shooting: React.FC = () => {
         type: "image/jpg",
       });
 
-      setIsOpenCamera(false); // ✅ Đóng camera sau khi chụp ảnh
+      setIsOpenCamera(false);
       setIsTakingPhoto(false);
     }
   };
@@ -111,11 +110,14 @@ const Shooting: React.FC = () => {
       Alert.alert("No Image", "Please take or select an image first.");
       return;
     }
-
+  
     try {
       const emotion = await detectEmotion(selectedFile.uri);
       await AsyncStorage.setItem("emotion", emotion);
-      navigation.navigate("Result");
+      
+      // Save the image URI to AsyncStorage so resultPage can access it
+      await AsyncStorage.setItem("capturedImageUri", selectedFile.uri);
+      navigation.navigate("Result", { capturedImageUri: selectedFile.uri });
     } catch (error) {
       Alert.alert("Error", "Failed to detect emotion.");
     }
@@ -130,7 +132,6 @@ const Shooting: React.FC = () => {
       <View style={ShootingStyle.topinfo}>
         <View style={ShootingStyle.info}>
           <Row handleHome={handleHome} />
-          <UserInfo />
         </View>
         <View style={ShootingStyle.mainphoto}>
           <View style={ShootingStyle.content}>
@@ -149,7 +150,11 @@ const Shooting: React.FC = () => {
                     style={ShootingStyle.selectedImage}
                   />
                 ) : (
-                  <Image source={facescan} style={ShootingStyle.defaultImage} />
+                  <Image
+                    source={facescan}
+                    style={ShootingStyle.defaultImage}
+                    resizeMode="cover"
+                  />
                 )}
               </View>
             </View>
@@ -164,7 +169,7 @@ const Shooting: React.FC = () => {
               onPress={handleTakePhoto}
               style={ShootingStyle.rectangleB}
             >
-              <FontAwesomeIcon icon={faCamera} size={30} color="#5C6A7E" />
+              <FontAwesomeIcon icon={faCamera} size={30} color="#1E1E1E" />
             </TouchableOpacity>
             {isOpenCamera ? (
               <TouchableOpacity
@@ -174,7 +179,7 @@ const Shooting: React.FC = () => {
                 <FontAwesomeIcon
                   icon={faCameraRotate}
                   size={30}
-                  color="#5C6A7E"
+                  color="#1E1E1E"
                 />
               </TouchableOpacity>
             ) : (
@@ -182,7 +187,7 @@ const Shooting: React.FC = () => {
                 onPress={handleChooseFromGallery}
                 style={ShootingStyle.rectangleB}
               >
-                <FontAwesomeIcon icon={faImage} size={30} color="#5C6A7E" />
+                <FontAwesomeIcon icon={faImage} size={30} color="#1E1E1E" />
               </TouchableOpacity>
             )}
           </View>

@@ -1,41 +1,72 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, Image } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useNavigation } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack"; 
-import Svg, { Circle } from "react-native-svg"; 
-import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import UserInfo from "../userPage/userInfo";
+import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
+import { StackNavigationProp } from "@react-navigation/stack";
+import Svg, { Circle } from "react-native-svg";
 import Row from "../../components/rowBack";
 import ResultStyle from "../../styles/resultStyle";
-import { RootStackParamList } from "../../navigations/AppNavigator"; 
+import { RootStackParamList } from "../../navigations/AppNavigator";
 
-// Định nghĩa kiểu navigation
+// Define navigation and route types
 type ResultScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
   "Result"
 >;
+type ResultScreenRouteProp = RouteProp<RootStackParamList, "Result">;
 
 const Result: React.FC = () => {
-  const navigation = useNavigation<ResultScreenNavigationProp>(); 
+  const navigation = useNavigation<ResultScreenNavigationProp>();
+  const route = useRoute<ResultScreenRouteProp>();
+
   const [emotion, setEmotion] = useState<string | null>(null);
   const [scanning, setScanning] = useState(true);
-  const imageUrl = "https://via.placeholder.com/150"; 
+  const [capturedImageUri, setCapturedImageUri] = useState<string | null>(null);
+
+  // Default placeholder image in case captured image isn't available
+  const defaultImageUrl = "https://via.placeholder.com/150";
 
   useEffect(() => {
-    const fetchEmotion = async () => {
+    const fetchData = async () => {
       try {
+        // Get the detected emotion from AsyncStorage
         const storedEmotion = await AsyncStorage.getItem("emotion");
         setEmotion(storedEmotion || "Unknown");
+
+        // First try to get image URI from route params
+        const paramImageUri = route.params?.capturedImageUri;
+
+        if (paramImageUri) {
+          // If available in route params, use it
+          setCapturedImageUri(paramImageUri);
+        } else {
+          // Fallback to AsyncStorage if not in params
+          const storedImageUri = await AsyncStorage.getItem("capturedImageUri");
+          if (storedImageUri) {
+            setCapturedImageUri(storedImageUri);
+          }
+        }
+
+        // Save the timestamp when emotion was detected
+        await AsyncStorage.setItem(
+          "emotionTimestamp",
+          new Date().toISOString()
+        );
       } catch (error) {
-        console.error("❌ Error fetching emotion:", error);
+        console.error("❌ Error fetching data:", error);
       } finally {
         setScanning(false);
       }
     };
 
-    fetchEmotion();
-  }, []);
+    fetchData();
+  }, [route.params]);
 
   const getCircleColor = () => {
     switch (emotion) {
@@ -61,8 +92,8 @@ const Result: React.FC = () => {
   const handleHome = () => {
     navigation.navigate("Home");
   };
-  
-  // Add function to navigate to food recommendation
+
+  // Navigate to food recommendation
   const handleStartRecommend = () => {
     navigation.navigate("ChoosingPref");
   };
@@ -72,14 +103,22 @@ const Result: React.FC = () => {
       <View style={ResultStyle.topinfo}>
         <View style={ResultStyle.info}>
           <Row />
-          <UserInfo />
         </View>
         <View style={ResultStyle.mainphoto}>
           <View style={ResultStyle.content}>
             <View style={ResultStyle.elipse2}>
               <View style={ResultStyle.elipse}>
-                {imageUrl && (
-                  <Image source={{ uri: imageUrl }} style={ResultStyle.img} />
+                {scanning ? (
+                  <ActivityIndicator
+                    size="large"
+                    color={getCircleColor()}
+                    style={ResultStyle.img}
+                  />
+                ) : (
+                  <Image
+                    source={{ uri: capturedImageUri || defaultImageUrl }}
+                    style={ResultStyle.img}
+                  />
                 )}
               </View>
             </View>
@@ -95,39 +134,26 @@ const Result: React.FC = () => {
             </View>
           ) : (
             <View style={ResultStyle.circleChartPercentage}>
-              <Svg
-                style={ResultStyle.circleChartBackground}
-                viewBox="0 0 50 50"
+              <View
+                style={[
+                  ResultStyle.contents,
+                  { backgroundColor: getCircleColor() },
+                ]}
               >
-                <Circle
-                  cx={25}
-                  cy={25}
-                  r={24}
-                  strokeWidth={2}
-                  stroke={getCircleColor()}
-                  strokeDasharray={151.94744}
-                  strokeDashoffset={75} 
-                  fill="transparent"
-                  strokeLinecap="round"
-                  transform="rotate(-90, 25, 25)"
-                />
-              </Svg>
-              <View style={ResultStyle.contents}>
                 <Text style={ResultStyle.resultText}>{emotion}</Text>
               </View>
             </View>
           )}
         </View>
-        
+
         {/* Add Start Recommendation button */}
-        {!scanning && emotion && (
+        {!scanning && (
           <TouchableOpacity
             style={{
               backgroundColor: getCircleColor(),
               paddingVertical: 12,
               paddingHorizontal: 20,
               borderRadius: 8,
-              marginTop: 20,
               alignSelf: "center",
               elevation: 2,
             }}

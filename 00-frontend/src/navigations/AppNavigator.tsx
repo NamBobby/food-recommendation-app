@@ -12,7 +12,7 @@ import ResultFood from "../views/recommendPage/resultFood";
 export type RootStackParamList = {
     Home: undefined;
     Shooting: undefined;
-    Result: undefined;
+    Result: { capturedImageUri?: string }; 
     Tracking: undefined;
     ChoosingPref: undefined;
     ResultFood: undefined;

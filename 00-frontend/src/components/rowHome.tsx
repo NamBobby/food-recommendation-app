@@ -26,7 +26,7 @@ const Row: React.FC<RowProps> = ({ handleHome }) => {
 
   return (
     <View style={RowStyle.backmenu}>
-      <TouchableOpacity onPress={onPressHome} activeOpacity={0.7}>
+      <TouchableOpacity onPress={onPressHome} activeOpacity={0.5}>
         <View style={RowStyle.rectangleA}>
           <FontAwesomeIcon icon="home" size={40} color="#E39F0C" />
         </View>

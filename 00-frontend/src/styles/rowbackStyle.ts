@@ -2,7 +2,8 @@ import { StyleSheet } from "react-native";
 
 const RowStyle = StyleSheet.create({
       backmenu: {
-        margin: 20,
+        marginTop: 10,
+        marginLeft: 20,
         width: 55,
         height: 55,
         display: "flex",
@@ -11,7 +12,6 @@ const RowStyle = StyleSheet.create({
       rectangleA: {
         width: 55,
         height: 55,
-        backgroundColor: "#DBB1D3",
         padding: 5,
         fontSize: 42,
         borderRadius: 100,
