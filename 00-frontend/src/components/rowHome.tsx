@@ -2,17 +2,33 @@ import React from "react";
 import { View, TouchableOpacity } from "react-native";
 import RowStyle from "../styles/rowhomeStyle";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
+import { useNavigation } from "@react-navigation/native";
+import { StackNavigationProp } from "@react-navigation/stack";
+import { RootStackParamList } from "../navigations/AppNavigator";
+
+type HomeNavigationProp = StackNavigationProp<RootStackParamList, "Home">;
 
 interface RowProps {
-  handleHome: () => void;
+  handleHome?: () => void; 
 }
 
 const Row: React.FC<RowProps> = ({ handleHome }) => {
+  const navigation = useNavigation<HomeNavigationProp>();
+
+  const navigateToHome = () => {
+    // Reset navigation stack and go to Home screen
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "Home" }],
+    });
+  };
+  const onPressHome = handleHome || navigateToHome;
+
   return (
     <View style={RowStyle.backmenu}>
-      <TouchableOpacity onPress={handleHome}>
+      <TouchableOpacity onPress={onPressHome} activeOpacity={0.7}>
         <View style={RowStyle.rectangleA}>
-          <FontAwesomeIcon icon="home" size={30} color="#EDD8E9" />
+          <FontAwesomeIcon icon="home" size={40} color="#E39F0C" />
         </View>
       </TouchableOpacity>
     </View>

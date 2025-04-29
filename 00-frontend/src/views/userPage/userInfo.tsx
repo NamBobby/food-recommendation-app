@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import styles from "../../styles/userInfoStyle";
+import UserInfoStyle from "../../styles/userInfoStyle";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuth } from "../../context/AuthContext";
 
@@ -33,16 +33,16 @@ const UserInfo: React.FC<UserInfoProps> = () => {
   };
 
   return (
-    <View style={styles.userInfo}>
+    <View style={UserInfoStyle.userInfo}>
       <TouchableOpacity
-        style={styles.username}
+        style={UserInfoStyle.username}
         onPress={() => setShowSignOutButton(!showSignOutButton)}
       >
-        <Text style={styles.userName}>{userName}</Text>
+        <Text style={UserInfoStyle.userName}>{userName}</Text>
       </TouchableOpacity>
       {showSignOutButton && (
-        <TouchableOpacity style={styles.signOutButton} onPress={handleLogout}>
-          <Text style={styles.signOutButtonText}>Sign Out</Text>
+        <TouchableOpacity style={UserInfoStyle.signOutButton} onPress={handleLogout}>
+          <Text style={UserInfoStyle.signOutButtonText}>Sign Out</Text>
         </TouchableOpacity>
       )}
     </View>

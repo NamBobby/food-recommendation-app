@@ -5,13 +5,10 @@ const TrackingStyle = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F9FAFB",
   },
-  header: {
+  info: {
+    display: "flex",
     flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    backgroundColor: "white",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
+    justifyContent: "flex-start",
   },
   backButton: {
     padding: 8,
@@ -24,10 +21,7 @@ const TrackingStyle = StyleSheet.create({
   },
   messageContainer: {
     padding: 16,
-    backgroundColor: "white",
-    marginBottom: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
+    backgroundColor: "#F9FAFB",
   },
   todayMessage: {
     fontSize: 16,
