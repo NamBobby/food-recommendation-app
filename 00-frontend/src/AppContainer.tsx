@@ -1,4 +1,3 @@
-// src/AppContainer.tsx
 import React, { useEffect } from 'react';
 import { ActivityIndicator, View, Text } from 'react-native';
 import { useAuth } from './context/AuthContext';

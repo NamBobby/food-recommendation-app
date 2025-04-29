@@ -1,4 +1,3 @@
-// src/views/authPage/login.tsx
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from "react-native";
 import LoginStyle from "../../styles/loginStyle";
@@ -7,7 +6,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { useAuth } from "../../context/AuthContext";
 
-// Định nghĩa các route có trong AuthNavigator
+// Define routes in AuthNavigator
 type AuthStackParamList = {
   Login: undefined;
   Register: undefined;
@@ -39,11 +38,11 @@ const Login = () => {
     <View style={LoginStyle.container}>
       <View style={LoginStyle.topinfo}>
         <View style={LoginStyle.frame}>
-          <Text style={LoginStyle.textframe}>C & Y</Text>
+          <Text style={LoginStyle.textframe}>C&Y</Text>
         </View>
         <View style={LoginStyle.inputContainer}>
           <Text style={LoginStyle.texttitle}>
-            Please fill your details to sign in.
+            Please fill your detail to access your account.
           </Text>
           <View style={LoginStyle.inputText}>
             <Text style={LoginStyle.text}>Email</Text>
@@ -51,6 +50,7 @@ const Login = () => {
               <TextInput
                 style={LoginStyle.input}
                 placeholder="Email"
+                placeholderTextColor={LoginStyle.inputPlaceholder.color} 
                 onChangeText={setEmail}
                 value={email}
                 autoCapitalize="none"
@@ -64,6 +64,7 @@ const Login = () => {
               <TextInput
                 style={LoginStyle.input}
                 placeholder="Password"
+                placeholderTextColor={LoginStyle.inputPlaceholder.color}
                 secureTextEntry={!showPassword}
                 onChangeText={setPassword}
                 value={password}
@@ -75,7 +76,7 @@ const Login = () => {
                 <FontAwesomeIcon
                   icon={showPassword ? "eye" : "eye-slash"}
                   size={25}
-                  color="#EDD8E9"
+                  color="#D0D5DD"
                 />
               </TouchableOpacity>
             </View>

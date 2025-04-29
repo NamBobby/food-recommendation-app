@@ -29,8 +29,11 @@ const RegisterStyle = StyleSheet.create({
     padding: 10,
     width: 310,
   },
+  inputPlaceholder: {
+    color: '#D0D5DD', 
+  },
   buttonUp: {
-    backgroundColor: '#B7AEDF',
+    backgroundColor: '#FFD900',
     borderRadius: 5,
     padding: 10,
     width: 350,
@@ -50,15 +53,16 @@ const RegisterStyle = StyleSheet.create({
     alignItems: 'flex-start'
   },
   textsignUp: {
-    color: '#B7AEDF',
+    color: '#E39F0C',
     fontFamily: 'Montserrat-SemiBold',
     fontSize: 14,
     lineHeight: 20,
     alignItems: 'flex-start'
   },
   frame: {
+    marginTop: 50,
     borderWidth: 3,
-    borderColor: '#FFB3C6',
+    borderColor: '#E39F0C',
     backgroundColor: '#FFFFFF',
     borderRadius: 30,
     width: 300,
@@ -67,15 +71,16 @@ const RegisterStyle = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 100
+    marginBottom: 50
   },
   textframe: {
+    marginTop: 10,
     display: "flex",
     alignItems: "flex-end",
-    color: "#6ea9f7",
+    color: "#E39F0C",
     fontFamily: 'Montserrat-Bold',
-    fontSize: 32,
-    lineHeight: 48,
+    fontSize: 96,
+    lineHeight: 100,
   },
   texttitle: {
     marginLeft: 10,
@@ -100,6 +105,7 @@ const RegisterStyle = StyleSheet.create({
     height: 25,
   },
   dateContainer: {
+    marginLeft: 8,
     width: "90%",
     flexDirection: "row",
     justifyContent: "space-between",
@@ -108,10 +114,16 @@ const RegisterStyle = StyleSheet.create({
   dropdown: {
     width: "30%",
     zIndex: 1000, 
+    borderWidth: 0,
+  },
+  dropdownStyle: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 5,
-    backgroundColor: "#FFF",
+    borderColor: "#D0D5DD",
+    borderRadius: 8,
+  },
+  dropdownListStyle: {
+    borderColor: "#D0D5DD",
+    borderWidth: 1,
   },
 });
 
