@@ -9,12 +9,11 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
-import Svg, { Circle } from "react-native-svg";
 import Row from "../../components/rowBack";
 import ResultStyle from "../../styles/resultStyle";
 import { RootStackParamList } from "../../navigations/AppNavigator";
+const facescan = require("../../assets/image/facescan.gif");
 
-// Define navigation and route types
 type ResultScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
   "Result"
@@ -28,9 +27,6 @@ const Result: React.FC = () => {
   const [emotion, setEmotion] = useState<string | null>(null);
   const [scanning, setScanning] = useState(true);
   const [capturedImageUri, setCapturedImageUri] = useState<string | null>(null);
-
-  // Default placeholder image in case captured image isn't available
-  const defaultImageUrl = "https://via.placeholder.com/150";
 
   useEffect(() => {
     const fetchData = async () => {
@@ -116,7 +112,7 @@ const Result: React.FC = () => {
                   />
                 ) : (
                   <Image
-                    source={{ uri: capturedImageUri || defaultImageUrl }}
+                    source={{ uri: capturedImageUri || facescan }}
                     style={ResultStyle.img}
                   />
                 )}
@@ -159,7 +155,7 @@ const Result: React.FC = () => {
             }}
             onPress={handleStartRecommend}
           >
-            <Text style={{ color: "white", fontWeight: "bold", fontSize: 16 }}>
+            <Text style={{ color: "#000000", fontFamily: 'Montserrat-Bold', fontSize: 16 }}>
               Start Recommendation
             </Text>
           </TouchableOpacity>

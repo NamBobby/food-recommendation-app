@@ -1,6 +1,5 @@
-// src/views/adminPage/foodTrends/FoodTrendCharts.tsx
-import React from 'react';
-import { View, Text, Dimensions } from 'react-native';
+import React, { useRef } from 'react';
+import { View, Text, Dimensions, ScrollView } from 'react-native';
 import { BarChart } from 'react-native-chart-kit';
 import styles from '../styles/foodTrendsStyle';
 import { FoodTrendItem, getEmotionColor } from './types';
@@ -11,11 +10,19 @@ interface FoodTrendChartsProps {
 
 const FoodTrendCharts: React.FC<FoodTrendChartsProps> = ({ filteredTrends }) => {
   const screenWidth = Dimensions.get('window').width - 40;
+  const scrollViewRef = useRef<ScrollView>(null);
+  
+  const getMinimumChartWidth = (dataLength: number) => {
+    return Math.max(screenWidth, dataLength * 100);
+  };
 
   // Prepare data for emotion chart
   const getEmotionChartData = () => {
+    const allEmotions = ['happy', 'sad', 'angry', 'neutral', 'surprise', 'fear', 'disgust'];
     const emotionData: { [key: string]: { count: number, total: number }} = {};
-    
+    allEmotions.forEach(emotion => {
+      emotionData[emotion] = { count: 0, total: 0 };
+    });
     filteredTrends.forEach(item => {
       if (!emotionData[item.emotion]) {
         emotionData[item.emotion] = { count: 0, total: 0 };
@@ -36,8 +43,11 @@ const FoodTrendCharts: React.FC<FoodTrendChartsProps> = ({ filteredTrends }) => 
 
   // Prepare data for meal time chart
   const getMealTimeChartData = () => {
+    const allMealTimes = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
     const mealTimeData: { [key: string]: { count: number, total: number }} = {};
-    
+    allMealTimes.forEach(mealTime => {
+      mealTimeData[mealTime] = { count: 0, total: 0 };
+    });
     filteredTrends.forEach(item => {
       if (!mealTimeData[item.meal_time]) {
         mealTimeData[item.meal_time] = { count: 0, total: 0 };
@@ -57,8 +67,11 @@ const FoodTrendCharts: React.FC<FoodTrendChartsProps> = ({ filteredTrends }) => 
 
   // Prepare data for food type chart
   const getFoodTypeChartData = () => {
+    const allFoodTypes = ['Fruits', 'Vegetables', 'Meat', 'Dairy', 'Grains', 'Snacks', 'Beverages'];
     const foodTypeData: { [key: string]: { count: number, total: number }} = {};
-    
+    allFoodTypes.forEach(foodType => {
+      foodTypeData[foodType] = { count: 0, total: 0 };
+    });
     filteredTrends.forEach(item => {
       if (!foodTypeData[item.food_type]) {
         foodTypeData[item.food_type] = { count: 0, total: 0 };
@@ -79,8 +92,9 @@ const FoodTrendCharts: React.FC<FoodTrendChartsProps> = ({ filteredTrends }) => 
   // Render emotion chart
   const renderEmotionChart = () => {
     const emotionData = getEmotionChartData();
+    const chartWidth = getMinimumChartWidth(emotionData.length);
     
-    if (emotionData.length === 0) {
+    if (filteredTrends.length === 0) {
       return (
         <View style={styles.noDataContainer}>
           <Text style={styles.noDataText}>No data available for the selected filters</Text>
@@ -101,29 +115,40 @@ const FoodTrendCharts: React.FC<FoodTrendChartsProps> = ({ filteredTrends }) => 
     return (
       <View>
         <Text style={styles.sectionTitle}>Average Rating by Emotion</Text>
-        <BarChart
-          data={chartData}
-          width={screenWidth}
-          height={220}
-          yAxisSuffix=""
-          yAxisLabel=""
-          chartConfig={{
-            backgroundColor: '#ffffff',
-            backgroundGradientFrom: '#ffffff',
-            backgroundGradientTo: '#ffffff',
-            decimalPlaces: 1,
-            color: (opacity = 1) => `rgba(110, 169, 247, ${opacity})`,
-            labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-            style: {
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={true}
+          contentContainerStyle={{ paddingRight: 20 }}
+        >
+          <BarChart
+            data={chartData}
+            width={chartWidth}
+            height={220}
+            yAxisSuffix=""
+            yAxisLabel=""
+            chartConfig={{
+              backgroundColor: '#ffffff',
+              backgroundGradientFrom: '#ffffff',
+              backgroundGradientTo: '#ffffff',
+              decimalPlaces: 1,
+              color: (opacity = 1) => `rgba(110, 169, 247, ${opacity})`,
+              labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+              style: {
+                borderRadius: 16
+              },
+              barPercentage: 0.4,
+              propsForLabels: {
+                fontSize: 9,
+              }
+            }}
+            style={{
+              marginVertical: 8,
               borderRadius: 16
-            },
-            barPercentage: 0.7
-          }}
-          style={{
-            marginVertical: 8,
-            borderRadius: 16
-          }}
-        />
+            }}
+            fromZero
+            showValuesOnTopOfBars={true}
+          />
+        </ScrollView>
         <View style={styles.legendContainer}>
           {emotionData.map((item, index) => (
             <View key={index} style={styles.legendItem}>
@@ -132,6 +157,7 @@ const FoodTrendCharts: React.FC<FoodTrendChartsProps> = ({ filteredTrends }) => 
             </View>
           ))}
         </View>
+        <Text style={styles.scrollHint}>Swipe left/right to see more</Text>
       </View>
     );
   };
@@ -139,8 +165,9 @@ const FoodTrendCharts: React.FC<FoodTrendChartsProps> = ({ filteredTrends }) => 
   // Render meal time chart
   const renderMealTimeChart = () => {
     const mealTimeData = getMealTimeChartData();
+    const chartWidth = getMinimumChartWidth(mealTimeData.length);
     
-    if (mealTimeData.length === 0) {
+    if (mealTimeData.every(item => item.count === 0)) {
       return null;
     }
     
@@ -157,29 +184,41 @@ const FoodTrendCharts: React.FC<FoodTrendChartsProps> = ({ filteredTrends }) => 
     return (
       <View style={{ marginTop: 24 }}>
         <Text style={styles.sectionTitle}>Average Rating by Meal Time</Text>
-        <BarChart
-          data={chartData}
-          width={screenWidth}
-          height={220}
-          yAxisSuffix=""
-          yAxisLabel=""
-          chartConfig={{
-            backgroundColor: '#ffffff',
-            backgroundGradientFrom: '#ffffff',
-            backgroundGradientTo: '#ffffff',
-            decimalPlaces: 1,
-            color: (opacity = 1) => `rgba(92, 234, 126, ${opacity})`,
-            labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-            style: {
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={true}
+          contentContainerStyle={{ paddingRight: 20 }}
+        >
+          <BarChart
+            data={chartData}
+            width={chartWidth}
+            height={220}
+            yAxisSuffix=""
+            yAxisLabel=""
+            chartConfig={{
+              backgroundColor: '#ffffff',
+              backgroundGradientFrom: '#ffffff',
+              backgroundGradientTo: '#ffffff',
+              decimalPlaces: 1,
+              color: (opacity = 1) => `rgba(92, 234, 126, ${opacity})`,
+              labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+              style: {
+                borderRadius: 16
+              },
+              barPercentage: 0.4,
+              propsForLabels: {
+                fontSize: 10
+              }
+            }}
+            style={{
+              marginVertical: 8,
               borderRadius: 16
-            },
-            barPercentage: 0.7
-          }}
-          style={{
-            marginVertical: 8,
-            borderRadius: 16
-          }}
-        />
+            }}
+            fromZero
+            showValuesOnTopOfBars={true}
+          />
+        </ScrollView>
+        <Text style={styles.scrollHint}>Swipe left/right to see more</Text>
       </View>
     );
   };
@@ -187,8 +226,9 @@ const FoodTrendCharts: React.FC<FoodTrendChartsProps> = ({ filteredTrends }) => 
   // Render food type chart
   const renderFoodTypeChart = () => {
     const foodTypeData = getFoodTypeChartData();
+    const chartWidth = getMinimumChartWidth(foodTypeData.length);
     
-    if (foodTypeData.length === 0) {
+    if (foodTypeData.every(item => item.count === 0)) {
       return null;
     }
     
@@ -205,29 +245,41 @@ const FoodTrendCharts: React.FC<FoodTrendChartsProps> = ({ filteredTrends }) => 
     return (
       <View style={{ marginTop: 24 }}>
         <Text style={styles.sectionTitle}>Average Rating by Food Type</Text>
-        <BarChart
-          data={chartData}
-          width={screenWidth}
-          height={220}
-          yAxisSuffix=""
-          yAxisLabel=""
-          chartConfig={{
-            backgroundColor: '#ffffff',
-            backgroundGradientFrom: '#ffffff',
-            backgroundGradientTo: '#ffffff',
-            decimalPlaces: 1,
-            color: (opacity = 1) => `rgba(255, 90, 99, ${opacity})`,
-            labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-            style: {
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={true}
+          contentContainerStyle={{ paddingRight: 20 }}
+        >
+          <BarChart
+            data={chartData}
+            width={chartWidth}
+            height={220}
+            yAxisSuffix=""
+            yAxisLabel=""
+            chartConfig={{
+              backgroundColor: '#ffffff',
+              backgroundGradientFrom: '#ffffff',
+              backgroundGradientTo: '#ffffff',
+              decimalPlaces: 1,
+              color: (opacity = 1) => `rgba(255, 90, 99, ${opacity})`,
+              labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+              style: {
+                borderRadius: 16
+              },
+              barPercentage: 0.4,
+              propsForLabels: {
+                fontSize: 9
+              }
+            }}
+            style={{
+              marginVertical: 8,
               borderRadius: 16
-            },
-            barPercentage: 0.7
-          }}
-          style={{
-            marginVertical: 8,
-            borderRadius: 16
-          }}
-        />
+            }}
+            fromZero
+            showValuesOnTopOfBars={true}
+          />
+        </ScrollView>
+        <Text style={styles.scrollHint}>Swipe left/right to see more</Text>
       </View>
     );
   };

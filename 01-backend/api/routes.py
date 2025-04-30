@@ -510,28 +510,48 @@ def get_dashboard_stats():
         for emotion, count in emotions:
             emotion_distribution[emotion] = count
         
-        # Get top rated foods
+        # Get meal time distribution
+        meal_time_distribution = {}
+        meal_times = db.session.query(UserFoodLog.meal_time, db.func.count(UserFoodLog.id)).group_by(
+            UserFoodLog.meal_time
+        ).all()
+        
+        for meal_time, count in meal_times:
+            meal_time_distribution[meal_time] = count
+        
+        # Get top rated foods with their food_type
         top_rated_foods = db.session.query(
             UserFoodLog.recommended_food,
+            UserFoodLog.food_type,
             db.func.avg(UserFoodLog.feedback_rating).label('avg_rating'),
             UserFoodLog.mood,
             db.func.count(UserFoodLog.id).label('count')
         ).filter(
             UserFoodLog.feedback_rating.isnot(None)
         ).group_by(
-            UserFoodLog.recommended_food, UserFoodLog.mood
+            UserFoodLog.recommended_food, UserFoodLog.food_type, UserFoodLog.mood
         ).order_by(
             db.desc('avg_rating')
         ).limit(5).all()
         
         top_foods_data = []
-        for food, rating, emotion, count in top_rated_foods:
+        for food, food_type, rating, emotion, count in top_rated_foods:
             top_foods_data.append({
                 "food": food,
+                "food_type": food_type,
                 "rating": float(rating),
                 "emotion": emotion,
                 "count": count
             })
+        
+        # Calculate average recommendation rating
+        avg_rating_query = db.session.query(
+            db.func.avg(UserFoodLog.feedback_rating)
+        ).filter(
+            UserFoodLog.feedback_rating.isnot(None)
+        ).scalar()
+        
+        average_rating = float(avg_rating_query) if avg_rating_query is not None else 0
         
         return jsonify({
             "status": "success",
@@ -540,7 +560,9 @@ def get_dashboard_stats():
                 "activeUsers": active_users,
                 "totalRecommendations": total_recommendations,
                 "emotionDistribution": emotion_distribution,
-                "topRatedFoods": top_foods_data
+                "mealTimeDistribution": meal_time_distribution,
+                "topRatedFoods": top_foods_data,
+                "averageRating": average_rating
             }
         })
     except Exception as e:

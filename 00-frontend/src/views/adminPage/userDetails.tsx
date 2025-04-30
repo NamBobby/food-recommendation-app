@@ -16,7 +16,7 @@ import { AdminStackParamList } from '../../navigations/AdminNavigator';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faArrowLeft, faEdit, faTrash, faSave } from '@fortawesome/free-solid-svg-icons';
 import { apiClient } from '../../services/api';
-import styles from '../../styles/userDetailsStyle';
+import UserDetailsStyle from '../../styles/userDetailsStyle';
 
 type UserDetailsRouteProp = RouteProp<AdminStackParamList, 'UserDetails'>;
 type UserDetailsNavigationProp = StackNavigationProp<AdminStackParamList, 'UserDetails'>;
@@ -166,47 +166,47 @@ const UserDetails: React.FC = () => {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#6EA9F7" />
-        <Text style={styles.loadingText}>Loading user details...</Text>
+      <View style={UserDetailsStyle.loadingContainer}>
+        <ActivityIndicator size="large" color="#E39F0C" />
+        <Text style={UserDetailsStyle.loadingText}>Loading user details...</Text>
       </View>
     );
   }
 
   if (!userData) {
     return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>User not found</Text>
+      <View style={UserDetailsStyle.errorContainer}>
+        <Text style={UserDetailsStyle.errorText}>User not found</Text>
         <TouchableOpacity 
-          style={styles.backButton}
+          style={UserDetailsStyle.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Text style={styles.backButtonText}>Go Back</Text>
+          <Text style={UserDetailsStyle.backButtonText}>Go Back</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <SafeAreaView style={UserDetailsStyle.container}>
+      <View style={UserDetailsStyle.header}>
         <TouchableOpacity 
-          style={styles.backIcon}
+          style={UserDetailsStyle.backIcon}
           onPress={() => navigation.goBack()}
         >
           <FontAwesomeIcon icon={faArrowLeft} size={20} color="#374151" />
         </TouchableOpacity>
-        <Text style={styles.title}>User Details</Text>
+        <Text style={UserDetailsStyle.title}>User Details</Text>
         {!editMode ? (
           <TouchableOpacity 
-            style={styles.editIcon}
+            style={UserDetailsStyle.editIcon}
             onPress={() => setEditMode(true)}
           >
             <FontAwesomeIcon icon={faEdit} size={20} color="#6EA9F7" />
           </TouchableOpacity>
         ) : (
           <TouchableOpacity 
-            style={styles.saveIcon}
+            style={UserDetailsStyle.saveIcon}
             onPress={handleSaveChanges}
           >
             <FontAwesomeIcon icon={faSave} size={20} color="#10B981" />
@@ -214,54 +214,54 @@ const UserDetails: React.FC = () => {
         )}
       </View>
 
-      <ScrollView style={styles.content}>
-        <View style={styles.userInfoSection}>
-          <Text style={styles.sectionTitle}>User Information</Text>
+      <ScrollView style={UserDetailsStyle.content}>
+        <View style={UserDetailsStyle.userInfoSection}>
+          <Text style={UserDetailsStyle.sectionTitle}>User Information</Text>
           
-          <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Name</Text>
+          <View style={UserDetailsStyle.infoItem}>
+            <Text style={UserDetailsStyle.infoLabel}>Name</Text>
             {editMode ? (
               <TextInput
-                style={styles.editInput}
+                style={UserDetailsStyle.editInput}
                 value={editedUser.name}
                 onChangeText={(text) => setEditedUser({ ...editedUser, name: text })}
                 placeholder="Enter name"
               />
             ) : (
-              <Text style={styles.infoValue}>{userData.name}</Text>
+              <Text style={UserDetailsStyle.infoValue}>{userData.name}</Text>
             )}
           </View>
           
-          <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Email</Text>
+          <View style={UserDetailsStyle.infoItem}>
+            <Text style={UserDetailsStyle.infoLabel}>Email</Text>
             {editMode ? (
               <TextInput
-                style={styles.editInput}
+                style={UserDetailsStyle.editInput}
                 value={editedUser.email}
                 onChangeText={(text) => setEditedUser({ ...editedUser, email: text })}
                 placeholder="Enter email"
                 keyboardType="email-address"
               />
             ) : (
-              <Text style={styles.infoValue}>{userData.email}</Text>
+              <Text style={UserDetailsStyle.infoValue}>{userData.email}</Text>
             )}
           </View>
           
-          <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Role</Text>
+          <View style={UserDetailsStyle.infoItem}>
+            <Text style={UserDetailsStyle.infoLabel}>Role</Text>
             {editMode ? (
-              <View style={styles.roleSelector}>
+              <View style={UserDetailsStyle.roleSelector}>
                 <TouchableOpacity
                   style={[
-                    styles.roleOption,
-                    editedUser.role === 'user' && styles.roleSelected
+                    UserDetailsStyle.roleOption,
+                    editedUser.role === 'user' && UserDetailsStyle.roleSelected
                   ]}
                   onPress={() => setEditedUser({ ...editedUser, role: 'user' })}
                 >
                   <Text
                     style={[
-                      styles.roleOptionText,
-                      editedUser.role === 'user' && styles.roleTextSelected
+                      UserDetailsStyle.roleOptionText,
+                      editedUser.role === 'user' && UserDetailsStyle.roleTextSelected
                     ]}
                   >
                     User
@@ -270,15 +270,15 @@ const UserDetails: React.FC = () => {
                 
                 <TouchableOpacity
                   style={[
-                    styles.roleOption,
-                    editedUser.role === 'admin' && styles.roleSelected
+                    UserDetailsStyle.roleOption,
+                    editedUser.role === 'admin' && UserDetailsStyle.roleSelected
                   ]}
                   onPress={() => setEditedUser({ ...editedUser, role: 'admin' })}
                 >
                   <Text
                     style={[
-                      styles.roleOptionText,
-                      editedUser.role === 'admin' && styles.roleTextSelected
+                      UserDetailsStyle.roleOptionText,
+                      editedUser.role === 'admin' && UserDetailsStyle.roleTextSelected
                     ]}
                   >
                     Admin
@@ -286,18 +286,18 @@ const UserDetails: React.FC = () => {
                 </TouchableOpacity>
               </View>
             ) : (
-              <Text style={styles.infoValue}>{userData.role}</Text>
+              <Text style={UserDetailsStyle.infoValue}>{userData.role}</Text>
             )}
           </View>
           
-          <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Date of Birth</Text>
-            <Text style={styles.infoValue}>{userData.date_of_birth}</Text>
+          <View style={UserDetailsStyle.infoItem}>
+            <Text style={UserDetailsStyle.infoLabel}>Date of Birth</Text>
+            <Text style={UserDetailsStyle.infoValue}>{userData.date_of_birth}</Text>
           </View>
           
-          <View style={styles.infoItem}>
-            <View style={styles.toggleContainer}>
-              <Text style={styles.infoLabel}>Status</Text>
+          <View style={UserDetailsStyle.infoItem}>
+            <View style={UserDetailsStyle.toggleContainer}>
+              <Text style={UserDetailsStyle.infoLabel}>Status</Text>
               {editMode ? (
                 <Switch
                   value={editedUser.status === 'active'}
@@ -313,7 +313,7 @@ const UserDetails: React.FC = () => {
               ) : (
                 <Text
                   style={[
-                    styles.infoValue,
+                    UserDetailsStyle.infoValue,
                     {
                       color:
                         userData.status === 'active' ? '#10B981' : '#EF4444'
@@ -327,31 +327,31 @@ const UserDetails: React.FC = () => {
           </View>
           
           {userData.created_at && (
-            <View style={styles.infoItem}>
-              <Text style={styles.infoLabel}>Joined</Text>
-              <Text style={styles.infoValue}>{userData.created_at}</Text>
+            <View style={UserDetailsStyle.infoItem}>
+              <Text style={UserDetailsStyle.infoLabel}>Joined</Text>
+              <Text style={UserDetailsStyle.infoValue}>{userData.created_at}</Text>
             </View>
           )}
         </View>
         
         {!editMode && (
-          <View style={styles.actionsSection}>
-            <Text style={styles.sectionTitle}>Actions</Text>
+          <View style={UserDetailsStyle.actionsSection}>
+            <Text style={UserDetailsStyle.sectionTitle}>Actions</Text>
             
             <TouchableOpacity
-              style={styles.actionButton}
+              style={UserDetailsStyle.actionButton}
               onPress={() => setEditMode(true)}
             >
               <FontAwesomeIcon icon={faEdit} size={20} color="#6EA9F7" />
-              <Text style={styles.actionText}>Edit User</Text>
+              <Text style={UserDetailsStyle.actionText}>Edit User</Text>
             </TouchableOpacity>
             
             <TouchableOpacity
-              style={styles.actionButton}
+              style={UserDetailsStyle.actionButton}
               onPress={handleDeleteUser}
             >
               <FontAwesomeIcon icon={faTrash} size={20} color="#EF4444" />
-              <Text style={[styles.actionText, styles.dangerText]}>
+              <Text style={[UserDetailsStyle.actionText, UserDetailsStyle.dangerText]}>
                 Delete User
               </Text>
             </TouchableOpacity>
@@ -359,31 +359,31 @@ const UserDetails: React.FC = () => {
         )}
         
         {userData.logs && userData.logs.length > 0 && (
-          <View style={styles.logSection}>
-            <Text style={styles.sectionTitle}>Food Recommendation History</Text>
+          <View style={UserDetailsStyle.logSection}>
+            <Text style={UserDetailsStyle.sectionTitle}>Food Recommendation History</Text>
             
             {userData.logs.map((log) => (
-              <View key={log.id} style={styles.logItem}>
-                <View style={styles.logHeader}>
-                  <Text style={styles.logDate}>
+              <View key={log.id} style={UserDetailsStyle.logItem}>
+                <View style={UserDetailsStyle.logHeader}>
+                  <Text style={UserDetailsStyle.logDate}>
                     {log.date} • {log.time}
                   </Text>
                   <View
                     style={[
-                      styles.emotionBadge,
+                      UserDetailsStyle.emotionBadge,
                       { backgroundColor: getEmotionColor(log.emotion) }
                     ]}
                   >
-                    <Text style={styles.emotionText}>
+                    <Text style={UserDetailsStyle.emotionText}>
                       {log.emotion.charAt(0).toUpperCase() + log.emotion.slice(1)}
                     </Text>
                   </View>
                 </View>
                 
-                <Text style={styles.logFood}>{log.recommended_food}</Text>
+                <Text style={UserDetailsStyle.logFood}>{log.recommended_food}</Text>
                 
-                <View style={styles.logMeta}>
-                  <Text style={styles.logDetails}>
+                <View style={UserDetailsStyle.logMeta}>
+                  <Text style={UserDetailsStyle.logDetails}>
                     {log.meal_time} • {log.food_type}
                   </Text>
                   {renderStars(log.rating)}

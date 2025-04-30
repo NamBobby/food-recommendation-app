@@ -16,9 +16,9 @@ const ResultStyle = StyleSheet.create({
     alignItems: "center",
   },
   info: {
-    marginTop: 25,
+    marginTop: 50,
     width: 375,
-    height: 100,
+    height: 75,
     display: "flex",
     flexDirection: "row",
     justifyContent: "space-between",
@@ -121,7 +121,7 @@ const ResultStyle = StyleSheet.create({
   },
   resultText: {
     fontFamily: 'Montserrat-Bold',
-    fontSize: 27,
+    fontSize: 28,
     lineHeight: 32,
     color: '#000',
   },

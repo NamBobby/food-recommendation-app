@@ -2,7 +2,7 @@ import { StyleSheet, Dimensions } from "react-native";
 
 const { width } = Dimensions.get("window");
 
-export const styles = StyleSheet.create({
+export const ResultFoodStyle = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F9FAFB",
@@ -12,29 +12,16 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     padding: 20,
   },
-  header: {
+  info: {
+    marginTop: 50,
+    width: 375,
+    height: 75,
+    display: "flex",
     flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    backgroundColor: "white",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
-  },
-  headerBackButton: {
-    padding: 8,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginLeft: 16,
-    color: "#1F2937",
+    justifyContent: "space-between",
   },
   userGreeting: {
-    padding: 16,
-    backgroundColor: "white",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
+    padding: 10,
   },
   userGreetingText: {
     fontSize: 14,
@@ -211,7 +198,7 @@ export const styles = StyleSheet.create({
     borderRadius: 8,
   },
   nutrientItemPriority: {
-    backgroundColor: "#F0F9FF", // Light blue background for priority nutrients
+    backgroundColor: "#F0F9FF", 
     borderWidth: 1,
     borderColor: "#BFDBFE",
   },
@@ -421,3 +408,5 @@ export const styles = StyleSheet.create({
     fontStyle: "italic",
   }
 });
+
+export default ResultFoodStyle;

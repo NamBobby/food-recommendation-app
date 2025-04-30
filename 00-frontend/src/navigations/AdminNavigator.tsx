@@ -16,7 +16,7 @@ import UserManagement from "../views/adminPage/userManagement";
 import FoodTrends from "../views/adminPage/foodTrends";
 import UserDetails from "../views/adminPage/userDetails";
 import { useAuth } from "../context/AuthContext";
-import { TouchableOpacity, Text, View } from "react-native";
+import { TouchableOpacity, Text, View, Platform } from "react-native";
 
 export type AdminStackParamList = {
   AdminTabs: undefined;
@@ -51,7 +51,7 @@ const AdminTabNavigator = () => {
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarActiveTintColor: "#6ea9f7",
+        tabBarActiveTintColor: "#E39F0C",
         tabBarInactiveTintColor: "#999",
         tabBarStyle: {
           backgroundColor: "#fff",
@@ -59,7 +59,16 @@ const AdminTabNavigator = () => {
           borderTopColor: "#e5e7eb",
           paddingBottom: 5,
           paddingTop: 5,
-          height: 60,
+          height: 75,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: -3 },
+          shadowOpacity: 0.1,
+          shadowRadius: 5,
+          elevation: 8,
+          ...(Platform.OS === 'ios' ? {
+            borderTopWidth: 0.5,
+            borderTopColor: 'rgba(0, 0, 0, 0.1)',
+          } : {}),
         },
         headerShown: false,
       }}
@@ -124,7 +133,7 @@ const AdminNavigator: React.FC = () => {
         <Stack.Screen
           name="UserDetails"
           component={UserDetails}
-          options={{ headerShown: true, title: "User Details" }}
+          options={{ headerShown: false }}
         />
       </Stack.Navigator>
     </NavigationContainer>

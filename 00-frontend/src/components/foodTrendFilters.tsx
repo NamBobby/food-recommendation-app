@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
-import styles from '../styles/foodTrendsStyle';
+import FoodTrendsStyle from '../styles/foodTrendsStyle';
 import { emotions, mealTimes, foodTypes } from './types';
 
 interface FoodTrendFiltersProps {
@@ -41,33 +41,33 @@ const FoodTrendFilters: React.FC<FoodTrendFiltersProps> = ({
       visible={visible}
       onRequestClose={onClose}
     >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Filter Trends</Text>
+      <View style={FoodTrendsStyle.modalOverlay}>
+        <View style={FoodTrendsStyle.modalContent}>
+          <View style={FoodTrendsStyle.modalHeader}>
+            <Text style={FoodTrendsStyle.modalTitle}>Filter Trends</Text>
             <TouchableOpacity
               onPress={onClose}
-              style={styles.modalCloseButton}
+              style={FoodTrendsStyle.modalCloseButton}
             >
               <FontAwesomeIcon icon={faTimes} size={20} color="#6B7280" />
             </TouchableOpacity>
           </View>
           
-          <ScrollView style={styles.modalScrollView}>
+          <ScrollView style={FoodTrendsStyle.modalScrollView}>
             {/* Emotion Filter */}
-            <View style={styles.filterSection}>
-              <Text style={styles.filterLabel}>Emotion</Text>
-              <View style={styles.filterOptions}>
+            <View style={FoodTrendsStyle.filterSection}>
+              <Text style={FoodTrendsStyle.filterLabel}>Emotion</Text>
+              <View style={FoodTrendsStyle.filterOptions}>
                 <TouchableOpacity
                   style={[
-                    styles.filterOption,
-                    emotionFilter === 'all' && styles.filterOptionSelected
+                    FoodTrendsStyle.filterOption,
+                    emotionFilter === 'all' && FoodTrendsStyle.filterOptionSelected
                   ]}
                   onPress={() => setEmotionFilter('all')}
                 >
                   <Text style={[
-                    styles.filterOptionText,
-                    emotionFilter === 'all' && styles.filterOptionTextSelected
+                    FoodTrendsStyle.filterOptionText,
+                    emotionFilter === 'all' && FoodTrendsStyle.filterOptionTextSelected
                   ]}>All</Text>
                 </TouchableOpacity>
                 
@@ -75,14 +75,14 @@ const FoodTrendFilters: React.FC<FoodTrendFiltersProps> = ({
                   <TouchableOpacity
                     key={index}
                     style={[
-                      styles.filterOption,
-                      emotionFilter === emotion && styles.filterOptionSelected
+                      FoodTrendsStyle.filterOption,
+                      emotionFilter === emotion && FoodTrendsStyle.filterOptionSelected
                     ]}
                     onPress={() => setEmotionFilter(emotion)}
                   >
                     <Text style={[
-                      styles.filterOptionText,
-                      emotionFilter === emotion && styles.filterOptionTextSelected
+                      FoodTrendsStyle.filterOptionText,
+                      emotionFilter === emotion && FoodTrendsStyle.filterOptionTextSelected
                     ]}>{emotion.charAt(0).toUpperCase() + emotion.slice(1)}</Text>
                   </TouchableOpacity>
                 ))}
@@ -90,19 +90,19 @@ const FoodTrendFilters: React.FC<FoodTrendFiltersProps> = ({
             </View>
             
             {/* Meal Time Filter */}
-            <View style={styles.filterSection}>
-              <Text style={styles.filterLabel}>Meal Time</Text>
-              <View style={styles.filterOptions}>
+            <View style={FoodTrendsStyle.filterSection}>
+              <Text style={FoodTrendsStyle.filterLabel}>Meal Time</Text>
+              <View style={FoodTrendsStyle.filterOptions}>
                 <TouchableOpacity
                   style={[
-                    styles.filterOption,
-                    mealTimeFilter === 'all' && styles.filterOptionSelected
+                    FoodTrendsStyle.filterOption,
+                    mealTimeFilter === 'all' && FoodTrendsStyle.filterOptionSelected
                   ]}
                   onPress={() => setMealTimeFilter('all')}
                 >
                   <Text style={[
-                    styles.filterOptionText,
-                    mealTimeFilter === 'all' && styles.filterOptionTextSelected
+                    FoodTrendsStyle.filterOptionText,
+                    mealTimeFilter === 'all' && FoodTrendsStyle.filterOptionTextSelected
                   ]}>All</Text>
                 </TouchableOpacity>
                 
@@ -110,14 +110,14 @@ const FoodTrendFilters: React.FC<FoodTrendFiltersProps> = ({
                   <TouchableOpacity
                     key={index}
                     style={[
-                      styles.filterOption,
-                      mealTimeFilter === mealTime && styles.filterOptionSelected
+                      FoodTrendsStyle.filterOption,
+                      mealTimeFilter === mealTime && FoodTrendsStyle.filterOptionSelected
                     ]}
                     onPress={() => setMealTimeFilter(mealTime)}
                   >
                     <Text style={[
-                      styles.filterOptionText,
-                      mealTimeFilter === mealTime && styles.filterOptionTextSelected
+                      FoodTrendsStyle.filterOptionText,
+                      mealTimeFilter === mealTime && FoodTrendsStyle.filterOptionTextSelected
                     ]}>{mealTime}</Text>
                   </TouchableOpacity>
                 ))}
@@ -125,19 +125,19 @@ const FoodTrendFilters: React.FC<FoodTrendFiltersProps> = ({
             </View>
             
             {/* Food Type Filter */}
-            <View style={styles.filterSection}>
-              <Text style={styles.filterLabel}>Food Type</Text>
-              <View style={styles.filterOptions}>
+            <View style={FoodTrendsStyle.filterSection}>
+              <Text style={FoodTrendsStyle.filterLabel}>Food Type</Text>
+              <View style={FoodTrendsStyle.filterOptions}>
                 <TouchableOpacity
                   style={[
-                    styles.filterOption,
-                    foodTypeFilter === 'all' && styles.filterOptionSelected
+                    FoodTrendsStyle.filterOption,
+                    foodTypeFilter === 'all' && FoodTrendsStyle.filterOptionSelected
                   ]}
                   onPress={() => setFoodTypeFilter('all')}
                 >
                   <Text style={[
-                    styles.filterOptionText,
-                    foodTypeFilter === 'all' && styles.filterOptionTextSelected
+                    FoodTrendsStyle.filterOptionText,
+                    foodTypeFilter === 'all' && FoodTrendsStyle.filterOptionTextSelected
                   ]}>All</Text>
                 </TouchableOpacity>
                 
@@ -145,14 +145,14 @@ const FoodTrendFilters: React.FC<FoodTrendFiltersProps> = ({
                   <TouchableOpacity
                     key={index}
                     style={[
-                      styles.filterOption,
-                      foodTypeFilter === foodType && styles.filterOptionSelected
+                      FoodTrendsStyle.filterOption,
+                      foodTypeFilter === foodType && FoodTrendsStyle.filterOptionSelected
                     ]}
                     onPress={() => setFoodTypeFilter(foodType)}
                   >
                     <Text style={[
-                      styles.filterOptionText,
-                      foodTypeFilter === foodType && styles.filterOptionTextSelected
+                      FoodTrendsStyle.filterOptionText,
+                      foodTypeFilter === foodType && FoodTrendsStyle.filterOptionTextSelected
                     ]}>{foodType}</Text>
                   </TouchableOpacity>
                 ))}
@@ -161,20 +161,20 @@ const FoodTrendFilters: React.FC<FoodTrendFiltersProps> = ({
             
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
               <TouchableOpacity
-                style={[styles.applyButton, { flex: 1, backgroundColor: '#9CA3AF', marginRight: 8 }]}
+                style={[FoodTrendsStyle.applyButton, { flex: 1, backgroundColor: '#9CA3AF', marginRight: 8 }]}
                 onPress={() => {
                   resetFilters();
                   onClose();
                 }}
               >
-                <Text style={styles.applyButtonText}>Reset Filters</Text>
+                <Text style={FoodTrendsStyle.applyButtonText}>Reset Filters</Text>
               </TouchableOpacity>
               
               <TouchableOpacity
-                style={[styles.applyButton, { flex: 1 }]}
+                style={[FoodTrendsStyle.applyButton, { flex: 1 }]}
                 onPress={onClose}
               >
-                <Text style={styles.applyButtonText}>Apply Filters</Text>
+                <Text style={FoodTrendsStyle.applyButtonText}>Apply Filters</Text>
               </TouchableOpacity>
             </View>
           </ScrollView>

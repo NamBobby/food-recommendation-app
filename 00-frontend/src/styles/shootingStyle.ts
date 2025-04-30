@@ -17,9 +17,9 @@ const ShootingStyle = StyleSheet.create({
     alignItems: "center",
   },
   info: {
-    marginTop: 25,
+    marginTop: 40,
     width: 375,
-    height: 100,
+    height: 75,
     display: "flex",
     flexDirection: "row",
     justifyContent: "space-between",

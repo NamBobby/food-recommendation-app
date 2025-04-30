@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
   SafeAreaView,
@@ -10,9 +9,9 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { RootStackParamList } from "../../navigations/AppNavigator";
+import Row from "../../components/rowBack";
+import ChoosingPrefStyle from "../../styles/choosingPrefStyle";
 import { fetchFoodTypes } from "../../services/api";
 
 type ChoosingPrefNavigationProp = StackNavigationProp<
@@ -113,7 +112,7 @@ const ChoosingPref: React.FC = () => {
     return (
       <View
         style={[
-          styles.container,
+          ChoosingPrefStyle.container,
           { justifyContent: "center", alignItems: "center" },
         ]}
       >
@@ -126,36 +125,33 @@ const ChoosingPref: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-          <FontAwesomeIcon icon={faArrowLeft} size={24} color="#5C6A7E" />
-        </TouchableOpacity>
-        <Text style={styles.title}>Food Preferences</Text>
+    <SafeAreaView style={ChoosingPrefStyle.container}>
+      <View style={ChoosingPrefStyle.info}>
+        <Row />
       </View>
 
-      <View style={styles.content}>
-        <View style={styles.emotionContainer}>
-          <Text style={styles.emotionText}>
+      <View style={ChoosingPrefStyle.content}>
+        <View style={ChoosingPrefStyle.emotionContainer}>
+          <Text style={ChoosingPrefStyle.emotionText}>
             Today you may feel{" "}
             <Text
-              style={[styles.emotionHighlight, { color: getEmotionColor() }]}
+              style={[ChoosingPrefStyle.emotionHighlight, { color: getEmotionColor() }]}
             >
               {emotion && emotion.charAt(0).toUpperCase() + emotion.slice(1)}
             </Text>
           </Text>
-          <Text style={styles.subtitle}>Please select your preferences</Text>
+          <Text style={ChoosingPrefStyle.subtitle}>Please select your preferences</Text>
         </View>
 
         {/* Meal Time Selection */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Meal Time</Text>
-          <View style={styles.radioGroup}>
+        <View style={ChoosingPrefStyle.section}>
+          <Text style={ChoosingPrefStyle.sectionTitle}>Meal Time</Text>
+          <View style={ChoosingPrefStyle.radioGroup}>
             {MEAL_TIMES.map((meal) => (
               <TouchableOpacity
                 key={meal}
                 style={[
-                  styles.radioButton,
+                  ChoosingPrefStyle.radioButton,
                   selectedMealTime === meal && {
                     backgroundColor: getEmotionColor(),
                   },
@@ -164,8 +160,8 @@ const ChoosingPref: React.FC = () => {
               >
                 <Text
                   style={[
-                    styles.radioText,
-                    selectedMealTime === meal && styles.radioTextSelected,
+                    ChoosingPrefStyle.radioText,
+                    selectedMealTime === meal && ChoosingPrefStyle.radioTextSelected,
                   ]}
                 >
                   {meal}
@@ -176,14 +172,14 @@ const ChoosingPref: React.FC = () => {
         </View>
 
         {/* Food Type Selection */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Food Type (Optional)</Text>
-          <View style={styles.radioGroup}>
+        <View style={ChoosingPrefStyle.section}>
+          <Text style={ChoosingPrefStyle.sectionTitle}>Food Type</Text>
+          <View style={ChoosingPrefStyle.radioGroup}>
             {foodTypes.map((type) => (
               <TouchableOpacity
                 key={type}
                 style={[
-                  styles.radioButton,
+                  ChoosingPrefStyle.radioButton,
                   selectedFoodType === type && {
                     backgroundColor: getEmotionColor(),
                   },
@@ -192,8 +188,8 @@ const ChoosingPref: React.FC = () => {
               >
                 <Text
                   style={[
-                    styles.radioText,
-                    selectedFoodType === type && styles.radioTextSelected,
+                    ChoosingPrefStyle.radioText,
+                    selectedFoodType === type && ChoosingPrefStyle.radioTextSelected,
                   ]}
                 >
                   {type.charAt(0).toUpperCase() + type.slice(1)}
@@ -203,123 +199,24 @@ const ChoosingPref: React.FC = () => {
           </View>
         </View>
 
-        <View style={styles.spacer} />
+        <View style={ChoosingPrefStyle.spacer} />
       </View>
 
-      <View style={styles.footer}>
+      <View style={ChoosingPrefStyle.footer}>
         <TouchableOpacity
-          style={[styles.startButton, { backgroundColor: getEmotionColor() }]}
+          style={[ChoosingPrefStyle.startButton, { backgroundColor: getEmotionColor() }]}
           onPress={handleStart}
           disabled={loading}
         >
           {loading ? (
-            <ActivityIndicator color="white" />
+            <ActivityIndicator color="#E39F0C" />
           ) : (
-            <Text style={styles.startButtonText}>Get Recommendations</Text>
+            <Text style={ChoosingPrefStyle.startButtonText}>Get Recommendations</Text>
           )}
         </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F9FAFB",
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
-    backgroundColor: "white",
-  },
-  backButton: {
-    padding: 8,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginLeft: 16,
-    color: "#1F2937",
-  },
-  content: {
-    flex: 1,
-    padding: 16,
-  },
-  emotionContainer: {
-    marginBottom: 24,
-    alignItems: "center",
-  },
-  emotionText: {
-    fontSize: 18,
-    color: "#4B5563",
-    textAlign: "center",
-    marginBottom: 8,
-  },
-  emotionHighlight: {
-    fontWeight: "bold",
-    fontSize: 20,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: "#6B7280",
-    textAlign: "center",
-  },
-  section: {
-    marginBottom: 36,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 12,
-    color: "#374151",
-  },
-  radioGroup: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-  },
-  radioButton: {
-    width: "48%",
-    padding: 12,
-    marginBottom: 12,
-    borderRadius: 8,
-    backgroundColor: "white",
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    alignItems: "center",
-  },
-  radioText: {
-    color: "#4B5563",
-    fontWeight: "500",
-  },
-  radioTextSelected: {
-    color: "white",
-    fontWeight: "600",
-  },
-  spacer: {
-    flex: 1,
-  },
-  footer: {
-    padding: 16,
-    backgroundColor: "white",
-    borderTopWidth: 1,
-    borderTopColor: "#E5E7EB",
-  },
-  startButton: {
-    borderRadius: 8,
-    paddingVertical: 14,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  startButtonText: {
-    color: "white",
-    fontWeight: "600",
-    fontSize: 16,
-  },
-});
 
 export default ChoosingPref;

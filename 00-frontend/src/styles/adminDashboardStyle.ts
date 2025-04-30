@@ -1,12 +1,12 @@
 import { StyleSheet } from "react-native";
 
-const styles = StyleSheet.create({
+const AdminDashboardStyle = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F9FAFB',
   },
   header: {
-    backgroundColor: 'white',
+    backgroundColor: '#F9FAFB',
     paddingVertical: 16,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
@@ -207,4 +207,4 @@ const styles = StyleSheet.create({
   }
 });
 
-export default styles;
+export default AdminDashboardStyle;

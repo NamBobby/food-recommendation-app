@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import styles from '../styles/foodTrendsStyle';
+import FoodTrendsStyle from '../styles/foodTrendsStyle';
 import { FoodTrendItem, getEmotionColor } from './types';
 
 interface FoodTrendInsightsProps {
@@ -14,8 +14,8 @@ const FoodTrendInsights: React.FC<FoodTrendInsightsProps> = ({
 }) => {
   if (filteredTrends.length === 0) {
     return (
-      <View style={styles.noDataContainer}>
-        <Text style={styles.noDataText}>No data available for the selected filters</Text>
+      <View style={FoodTrendsStyle.noDataContainer}>
+        <Text style={FoodTrendsStyle.noDataText}>No data available for the selected filters</Text>
       </View>
     );
   }
@@ -87,27 +87,27 @@ const FoodTrendInsights: React.FC<FoodTrendInsightsProps> = ({
   return (
     <View>
       {/* Emotion-Food Matching Insights */}
-      <View style={styles.insightItem}>
-        <Text style={styles.insightTitle}>Emotion-Food Compatibility</Text>
+      <View style={FoodTrendsStyle.insightItem}>
+        <Text style={FoodTrendsStyle.insightTitle}>Emotion-Food Compatibility</Text>
         {avgRatingByEmotion.length > 0 ? (
-          <Text style={styles.insightText}>
+          <Text style={FoodTrendsStyle.insightText}>
             Users experiencing <Text style={{ fontWeight: '600', color: getEmotionColor(avgRatingByEmotion[0]?.emotion || 'neutral') }}>
               {avgRatingByEmotion[0]?.emotion || 'neutral'}</Text> emotions responded most positively to food recommendations, 
             with an average rating of {avgRatingByEmotion[0]?.avgRating.toFixed(1) || 'N/A'}.
           </Text>
         ) : (
-          <Text style={styles.insightText}>No emotion data available.</Text>
+          <Text style={FoodTrendsStyle.insightText}>No emotion data available.</Text>
         )}
         
         {Object.entries(topFoodByEmotion).length > 0 && (
-          <Text style={[styles.insightText, { marginTop: 8 }]}>
+          <Text style={[FoodTrendsStyle.insightText, { marginTop: 8 }]}>
             The highest-rated foods by emotion are:
           </Text>
         )}
         
         {Object.entries(topFoodByEmotion).map(([emotion, data], index) => (
           <View key={index} style={{ marginTop: 4 }}>
-            <Text style={[styles.insightText, { fontWeight: '500' }]}>
+            <Text style={[FoodTrendsStyle.insightText, { fontWeight: '500' }]}>
               <Text style={{ color: getEmotionColor(emotion) }}>
                 {emotion.charAt(0).toUpperCase() + emotion.slice(1)}
               </Text>: {data.food} ({data.rating.toFixed(1)}/5)
@@ -117,16 +117,16 @@ const FoodTrendInsights: React.FC<FoodTrendInsightsProps> = ({
       </View>
       
       {/* Meal Time Insights */}
-      <View style={styles.insightItem}>
-        <Text style={styles.insightTitle}>Meal Time Preferences</Text>
+      <View style={FoodTrendsStyle.insightItem}>
+        <Text style={FoodTrendsStyle.insightTitle}>Meal Time Preferences</Text>
         {avgRatingByMealTime.length > 0 ? (
           <>
-            <Text style={styles.insightText}>
+            <Text style={FoodTrendsStyle.insightText}>
               <Text style={{ fontWeight: '600' }}>{avgRatingByMealTime[0].mealTime}</Text> recommendations 
               received the highest average rating ({avgRatingByMealTime[0].avgRating.toFixed(1)}/5) with {' '}
               {avgRatingByMealTime[0].count} ratings.
             </Text>
-            <Text style={[styles.insightText, { marginTop: 8 }]}>
+            <Text style={[FoodTrendsStyle.insightText, { marginTop: 8 }]}>
               Meal time rating distribution:
             </Text>
             {avgRatingByMealTime.map((data, index) => (
@@ -137,10 +137,10 @@ const FoodTrendInsights: React.FC<FoodTrendInsightsProps> = ({
                     {data.avgRating.toFixed(1)}/5
                   </Text>
                 </View>
-                <View style={styles.ratingDistributionBar}>
+                <View style={FoodTrendsStyle.ratingDistributionBar}>
                   <View 
                     style={[
-                      styles.ratingFill, 
+                      FoodTrendsStyle.ratingFill, 
                       { 
                         width: `${(data.avgRating / 5) * 100}%`,
                         backgroundColor: index === 0 ? '#5CEA7E' : '#6EA9F7'
@@ -152,21 +152,21 @@ const FoodTrendInsights: React.FC<FoodTrendInsightsProps> = ({
             ))}
           </>
         ) : (
-          <Text style={styles.insightText}>No meal time data available.</Text>
+          <Text style={FoodTrendsStyle.insightText}>No meal time data available.</Text>
         )}
       </View>
       
       {/* Food Type Insights */}
-      <View style={styles.insightItem}>
-        <Text style={styles.insightTitle}>Food Type Analysis</Text>
+      <View style={FoodTrendsStyle.insightItem}>
+        <Text style={FoodTrendsStyle.insightTitle}>Food Type Analysis</Text>
         {avgRatingByFoodType.length > 0 ? (
           <>
-            <Text style={styles.insightText}>
+            <Text style={FoodTrendsStyle.insightText}>
               <Text style={{ fontWeight: '600' }}>{avgRatingByFoodType[0].foodType}</Text> foods 
               received the highest average rating ({avgRatingByFoodType[0].avgRating.toFixed(1)}/5) with {' '}
               {avgRatingByFoodType[0].count} ratings.
             </Text>
-            <Text style={[styles.insightText, { marginTop: 8 }]}>
+            <Text style={[FoodTrendsStyle.insightText, { marginTop: 8 }]}>
               {emotionFilter !== 'all' ? (
                 `For ${emotionFilter} emotions, ${avgRatingByFoodType[0].foodType} foods are the most effective.`
               ) : (
@@ -175,14 +175,14 @@ const FoodTrendInsights: React.FC<FoodTrendInsightsProps> = ({
             </Text>
           </>
         ) : (
-          <Text style={styles.insightText}>No food type data available.</Text>
+          <Text style={FoodTrendsStyle.insightText}>No food type data available.</Text>
         )}
       </View>
       
       {/* Recommendation Quality Insights */}
-      <View style={styles.insightItem}>
-        <Text style={styles.insightTitle}>Recommendation Quality</Text>
-        <Text style={styles.insightText}>
+      <View style={FoodTrendsStyle.insightItem}>
+        <Text style={FoodTrendsStyle.insightTitle}>Recommendation Quality</Text>
+        <Text style={FoodTrendsStyle.insightText}>
           {totalRatings > 0 ? (
             `Based on ${totalRatings} total ratings, the average recommendation rating is ${averageRating.toFixed(1)}/5.`
           ) : (
@@ -191,7 +191,7 @@ const FoodTrendInsights: React.FC<FoodTrendInsightsProps> = ({
         </Text>
         
         {totalRatings > 0 && (
-          <Text style={[styles.insightText, { marginTop: 8 }]}>
+          <Text style={[FoodTrendsStyle.insightText, { marginTop: 8 }]}>
             {emotionFilter !== 'all' ? (
               `This suggests that current recommendations for ${emotionFilter} emotions are ${
                 averageRating >= 4.0 ? 

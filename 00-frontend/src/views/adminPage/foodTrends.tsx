@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -6,17 +6,23 @@ import {
   ActivityIndicator,
   SafeAreaView,
   RefreshControl,
-} from 'react-native';
-import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faFilter, faChartBar, faList, faLightbulb } from '@fortawesome/free-solid-svg-icons';
-import { apiClient } from '../../services/api';
-import styles from '../../styles/foodTrendsStyle';
+  ScrollView,
+} from "react-native";
+import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
+import {
+  faFilter,
+  faChartBar,
+  faList,
+  faLightbulb,
+} from "@fortawesome/free-solid-svg-icons";
+import { apiClient } from "../../services/api";
+import FoodTrendsStyle from "../../styles/foodTrendsStyle";
 
-import FoodTrendFilters from '../../components/foodTrendFilters';
-import FoodTrendCharts from '../../components/foodTrendCharts';
-import FoodTrendInsights from '../../components/foodTrendInsights';
-import FoodTrendList from '../../components/foodTrendList';
-import { FoodTrendItem } from '../../components/types';
+import FoodTrendFilters from "../../components/foodTrendFilters";
+import FoodTrendCharts from "../../components/foodTrendCharts";
+import FoodTrendInsights from "../../components/foodTrendInsights";
+import FoodTrendList from "../../components/foodTrendList";
+import { FoodTrendItem } from "../../components/types";
 
 const FoodTrends: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
@@ -24,11 +30,14 @@ const FoodTrends: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [trends, setTrends] = useState<FoodTrendItem[]>([]);
   const [filterModalVisible, setFilterModalVisible] = useState<boolean>(false);
-  const [emotionFilter, setEmotionFilter] = useState<string>('all');
-  const [mealTimeFilter, setMealTimeFilter] = useState<string>('all');
-  const [foodTypeFilter, setFoodTypeFilter] = useState<string>('all');
+  const [emotionFilter, setEmotionFilter] = useState<string>("all");
+  const [mealTimeFilter, setMealTimeFilter] = useState<string>("all");
+  const [foodTypeFilter, setFoodTypeFilter] = useState<string>("all");
   const [filteredTrends, setFilteredTrends] = useState<FoodTrendItem[]>([]);
-  const [activeTab, setActiveTab] = useState<'chart' | 'list' | 'insights'>('chart');
+  const [activeTab, setActiveTab] = useState<"chart" | "list" | "insights">(
+    "chart"
+  );
+  const scrollViewRef = useRef<ScrollView>(null);
 
   useEffect(() => {
     fetchTrends();
@@ -42,15 +51,15 @@ const FoodTrends: React.FC = () => {
     try {
       setError(null);
       setLoading(true);
-      
-      const response = await apiClient.get('/api/admin/food-trends');
-      
-      if (response.data && response.data.status === 'success') {
+
+      const response = await apiClient.get("/api/admin/food-trends");
+
+      if (response.data && response.data.status === "success") {
         setTrends(response.data.trends);
       }
-    } catch (error) {
-      console.error('Error fetching food trends:', error);
-      setError('Failed to load food trends. Pull down to refresh.');
+    } catch (error: any) {
+      console.error("Error fetching food trends:", error);
+      setError("Failed to load food trends. Pull down to refresh.");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -64,73 +73,64 @@ const FoodTrends: React.FC = () => {
 
   const applyFilters = () => {
     let filtered = [...trends];
-    
-    if (emotionFilter !== 'all') {
-      filtered = filtered.filter(item => item.emotion === emotionFilter);
+
+    if (emotionFilter !== "all") {
+      filtered = filtered.filter((item) => item.emotion === emotionFilter);
     }
-    
-    if (mealTimeFilter !== 'all') {
-      filtered = filtered.filter(item => item.meal_time === mealTimeFilter);
+
+    if (mealTimeFilter !== "all") {
+      filtered = filtered.filter((item) => item.meal_time === mealTimeFilter);
     }
-    
-    if (foodTypeFilter !== 'all') {
-      filtered = filtered.filter(item => item.food_type === foodTypeFilter);
+
+    if (foodTypeFilter !== "all") {
+      filtered = filtered.filter((item) => item.food_type === foodTypeFilter);
     }
-    
+
     setFilteredTrends(filtered);
   };
 
   const resetFilters = () => {
-    setEmotionFilter('all');
-    setMealTimeFilter('all');
-    setFoodTypeFilter('all');
+    setEmotionFilter("all");
+    setMealTimeFilter("all");
+    setFoodTypeFilter("all");
   };
 
-  // Instead of using ScrollView and nesting components, we'll conditionally render
-  // the active component directly to avoid nesting VirtualizedLists
-  const renderActiveContent = () => {
-    if (error) {
+  const renderContent = () => {
+    if (loading && !refreshing) {
       return (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error}</Text>
+        <View style={FoodTrendsStyle.loadingContainer}>
+          <ActivityIndicator size="large" color="#E39F0C" />
+          <Text style={FoodTrendsStyle.loadingText}>
+            Loading food trends...
+          </Text>
         </View>
       );
     }
 
-    if (loading && !refreshing) {
+    if (error) {
       return (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#6EA9F7" />
-          <Text style={styles.loadingText}>Loading food trends...</Text>
+        <View style={FoodTrendsStyle.errorContainer}>
+          <Text style={FoodTrendsStyle.errorText}>{error}</Text>
         </View>
       );
     }
 
     switch (activeTab) {
-      case 'chart':
+      case "chart":
+        return <FoodTrendCharts filteredTrends={filteredTrends} />;
+      case "list":
         return (
-          <View style={styles.sectionContainer}>
-            <FoodTrendCharts filteredTrends={filteredTrends} />
-          </View>
+          <FoodTrendList
+            filteredTrends={filteredTrends}
+            scrollEnabled={false}
+          />
         );
-      case 'list':
+      case "insights":
         return (
-          <View style={styles.sectionContainer}>
-            <FoodTrendList 
-              filteredTrends={filteredTrends} 
-              // This is where we'd handle the refresh control directly in FoodTrendList
-              // if needed. For now, we're using the separate button.
-            />
-          </View>
-        );
-      case 'insights':
-        return (
-          <View style={styles.sectionContainer}>
-            <FoodTrendInsights 
-              filteredTrends={filteredTrends} 
-              emotionFilter={emotionFilter} 
-            />
-          </View>
+          <FoodTrendInsights
+            filteredTrends={filteredTrends}
+            emotionFilter={emotionFilter}
+          />
         );
       default:
         return null;
@@ -138,86 +138,127 @@ const FoodTrends: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Food Trends</Text>
-      </View>
-
-      <View style={styles.filterBar}>
-        <TouchableOpacity
-          style={styles.filterButton}
-          onPress={() => setFilterModalVisible(true)}
-        >
-          <FontAwesomeIcon icon={faFilter} size={16} color="#374151" />
-          <Text style={styles.filterButtonText}>Filter</Text>
-        </TouchableOpacity>
-        
-        {(emotionFilter !== 'all' || mealTimeFilter !== 'all' || foodTypeFilter !== 'all') && (
+    <SafeAreaView style={FoodTrendsStyle.container}>
+      <View style={FoodTrendsStyle.header}>
+        <Text style={FoodTrendsStyle.headerTitle}>Food Trends</Text>
+        <View style={FoodTrendsStyle.filterBar}>
           <TouchableOpacity
-            style={[styles.filterButton, { backgroundColor: '#FEE2E2' }]}
-            onPress={resetFilters}
+            style={FoodTrendsStyle.filterButton}
+            onPress={() => setFilterModalVisible(true)}
           >
-            <Text style={styles.filterButtonText}>Clear Filters</Text>
+            <FontAwesomeIcon icon={faFilter} size={16} color="#374151" />
+            <Text style={FoodTrendsStyle.filterButtonText}>Filter</Text>
           </TouchableOpacity>
-        )}
+
+          {(emotionFilter !== "all" ||
+            mealTimeFilter !== "all" ||
+            foodTypeFilter !== "all") && (
+            <TouchableOpacity
+              style={[
+                FoodTrendsStyle.filterButton,
+                { backgroundColor: "#FEE2E2" },
+              ]}
+              onPress={resetFilters}
+            >
+              <Text style={FoodTrendsStyle.filterButtonText}>
+                Clear Filters
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
-      <View style={styles.tabContainer}>
+      <View style={FoodTrendsStyle.tabContainer}>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'chart' && styles.activeTab]}
-          onPress={() => setActiveTab('chart')}
+          style={[
+            FoodTrendsStyle.tab,
+            activeTab === "chart" && FoodTrendsStyle.activeTab,
+          ]}
+          onPress={() => setActiveTab("chart")}
         >
-          <FontAwesomeIcon 
-            icon={faChartBar} 
-            size={18} 
-            color={activeTab === 'chart' ? '#6EA9F7' : '#6B7280'} 
+          <FontAwesomeIcon
+            icon={faChartBar}
+            size={18}
+            color={activeTab === "chart" ? "#E39F0C" : "#6B7280"}
           />
-          <Text style={[styles.tabText, activeTab === 'chart' && styles.activeTabText]}>
+          <Text
+            style={[
+              FoodTrendsStyle.tabText,
+              activeTab === "chart" && FoodTrendsStyle.activeTabText,
+            ]}
+          >
             Charts
           </Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'list' && styles.activeTab]}
-          onPress={() => setActiveTab('list')}
+          style={[
+            FoodTrendsStyle.tab,
+            activeTab === "list" && FoodTrendsStyle.activeTab,
+          ]}
+          onPress={() => setActiveTab("list")}
         >
-          <FontAwesomeIcon 
-            icon={faList} 
-            size={18} 
-            color={activeTab === 'list' ? '#6EA9F7' : '#6B7280'} 
+          <FontAwesomeIcon
+            icon={faList}
+            size={18}
+            color={activeTab === "list" ? "#E39F0C" : "#6B7280"}
           />
-          <Text style={[styles.tabText, activeTab === 'list' && styles.activeTabText]}>
+          <Text
+            style={[
+              FoodTrendsStyle.tabText,
+              activeTab === "list" && FoodTrendsStyle.activeTabText,
+            ]}
+          >
             List View
           </Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'insights' && styles.activeTab]}
-          onPress={() => setActiveTab('insights')}
+          style={[
+            FoodTrendsStyle.tab,
+            activeTab === "insights" && FoodTrendsStyle.activeTab,
+          ]}
+          onPress={() => setActiveTab("insights")}
         >
-          <FontAwesomeIcon 
-            icon={faLightbulb} 
-            size={18} 
-            color={activeTab === 'insights' ? '#6EA9F7' : '#6B7280'} 
+          <FontAwesomeIcon
+            icon={faLightbulb}
+            size={18}
+            color={activeTab === "insights" ? "#E39F0C" : "#6B7280"}
           />
-          <Text style={[styles.tabText, activeTab === 'insights' && styles.activeTabText]}>
+          <Text
+            style={[
+              FoodTrendsStyle.tabText,
+              activeTab === "insights" && FoodTrendsStyle.activeTabText,
+            ]}
+          >
             Insights
           </Text>
         </TouchableOpacity>
       </View>
-      {renderActiveContent()}
 
-      {!loading && (
-        <TouchableOpacity
-          style={styles.refreshButton}
-          onPress={onRefresh}
-          disabled={refreshing}
-        >
-          <Text style={styles.refreshButtonText}>
-            {refreshing ? 'Refreshing...' : 'Refresh Data'}
-          </Text>
-        </TouchableOpacity>
-      )}
+      {/* Main scrollable content area */}
+      <ScrollView
+        style={{ flex: 1 }}
+        ref={scrollViewRef}
+        contentContainerStyle={{ flexGrow: 1 }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
+        <View style={FoodTrendsStyle.sectionContainer}>{renderContent()}</View>
+
+        {!loading && (
+          <TouchableOpacity
+            style={FoodTrendsStyle.refreshButton}
+            onPress={onRefresh}
+            disabled={refreshing}
+          >
+            <Text style={FoodTrendsStyle.refreshButtonText}>
+              {refreshing ? "Refreshing..." : "Refresh Data"}
+            </Text>
+          </TouchableOpacity>
+        )}
+      </ScrollView>
 
       {/* Filter Modal */}
       <FoodTrendFilters

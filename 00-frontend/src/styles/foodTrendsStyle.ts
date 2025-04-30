@@ -1,12 +1,15 @@
 import { StyleSheet } from "react-native";
 
-const styles = StyleSheet.create({
+const FoodTrendsStyle = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F9FAFB',
   },
   header: {
-    backgroundColor: 'white',
+    display: 'flex',
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+    backgroundColor: '#F9FAFB',
     paddingVertical: 16,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
@@ -18,24 +21,16 @@ const styles = StyleSheet.create({
     color: '#111827',
   },
   filterBar: {
-    flexDirection: 'row',
-    backgroundColor: 'white',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    backgroundColor: '#F9FAFB',
   },
   filterButton: {
-    backgroundColor: '#F3F4F6',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
     borderRadius: 8,
     marginRight: 8,
     flexDirection: 'row',
     alignItems: 'center',
   },
   filterButtonActive: {
-    backgroundColor: '#6EA9F7',
+    backgroundColor: '#E39F0C',
   },
   filterButtonText: {
     fontSize: 14,
@@ -105,14 +100,14 @@ const styles = StyleSheet.create({
   },
   activeTab: {
     borderBottomWidth: 2,
-    borderBottomColor: '#6EA9F7',
+    borderBottomColor: '#E39F0C',
   },
   tabText: {
     fontSize: 14,
     color: '#6B7280',
   },
   activeTabText: {
-    color: '#6EA9F7',
+    color: '#E39F0C',
     fontWeight: '600',
   },
   foodItem: {
@@ -243,7 +238,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   filterOptionSelected: {
-    backgroundColor: '#6EA9F7',
+    backgroundColor: '#E39F0C',
   },
   filterOptionText: {
     color: '#374151',
@@ -253,7 +248,7 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   applyButton: {
-    backgroundColor: '#6EA9F7',
+    backgroundColor: '#E39F0C',
     borderRadius: 8,
     paddingVertical: 12,
     alignItems: 'center',
@@ -300,7 +295,7 @@ const styles = StyleSheet.create({
   },
   ratingFill: {
     height: '100%',
-    backgroundColor: '#6EA9F7',
+    backgroundColor: '#E39F0C',
   },
   legendContainer: {
     flexDirection: 'row',
@@ -325,7 +320,7 @@ const styles = StyleSheet.create({
     color: '#6B7280',
   },
   refreshButton: {
-    backgroundColor: '#6EA9F7',
+    backgroundColor: '#E39F0C',
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 8,
@@ -338,6 +333,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 14,
   },
+  scrollHint: {
+    textAlign: 'center',
+    fontSize: 12,
+    color: "#6B7280",
+    marginTop: 5,
+    fontStyle: 'italic',
+  },
 });
 
-export default styles;
+export default FoodTrendsStyle;

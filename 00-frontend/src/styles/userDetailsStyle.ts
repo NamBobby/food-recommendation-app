@@ -1,6 +1,6 @@
 import { StyleSheet } from "react-native";
 
-const styles = StyleSheet.create({
+const UserDetailsStyle = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F9FAFB',
@@ -8,7 +8,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
+    backgroundColor: '#F9FAFB',
     paddingVertical: 16,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
@@ -43,6 +43,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
+  },
+  userInfo: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: 'space-between',
   },
   sectionTitle: {
     fontSize: 16,
@@ -208,4 +213,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default styles;
+export default UserDetailsStyle;

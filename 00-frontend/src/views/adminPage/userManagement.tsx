@@ -22,10 +22,9 @@ import {
   faEdit,
   faTrash,
   faTimes,
-  faPlus
 } from '@fortawesome/free-solid-svg-icons';
 import { apiClient } from '../../services/api';
-import styles from '../../styles/userManagementStyle';
+import UserManagementStyle from '../../styles/userManagementStyle';
 
 type UserManagementNavigationProp = StackNavigationProp<AdminStackParamList, 'UserDetails'>;
 
@@ -144,39 +143,39 @@ const UserManagement: React.FC = () => {
   };
 
   const renderUserItem = ({ item }: { item: User }) => (
-    <View style={styles.userItem}>
+    <View style={UserManagementStyle.userItem}>
       <TouchableOpacity 
-        style={styles.userInfo}
+        style={UserManagementStyle.userInfo}
         onPress={() => handleUserPress(item.id)}
       >
-        <Text style={styles.userName}>{item.name}</Text>
-        <Text style={styles.userEmail}>{item.email}</Text>
-        <View style={styles.userMeta}>
+        <Text style={UserManagementStyle.userName}>{item.name}</Text>
+        <Text style={UserManagementStyle.userEmail}>{item.email}</Text>
+        <View style={UserManagementStyle.userMeta}>
           <View style={[
-            styles.roleBadge, 
+            UserManagementStyle.roleBadge, 
             {backgroundColor: item.role === 'admin' ? '#F59E0B' : '#6EA9F7'}
           ]}>
-            <Text style={styles.roleBadgeText}>{item.role}</Text>
+            <Text style={UserManagementStyle.roleBadgeText}>{item.role}</Text>
           </View>
           <View style={[
-            styles.statusBadge, 
+            UserManagementStyle.statusBadge, 
             {backgroundColor: item.status === 'active' ? '#10B981' : '#EF4444'}
           ]}>
-            <Text style={styles.statusBadgeText}>{item.status}</Text>
+            <Text style={UserManagementStyle.statusBadgeText}>{item.status}</Text>
           </View>
         </View>
       </TouchableOpacity>
       
-      <View style={styles.userActions}>
+      <View style={UserManagementStyle.userActions}>
         <TouchableOpacity 
-          style={[styles.actionButton, styles.editButton]}
+          style={[UserManagementStyle.actionButton, UserManagementStyle.editButton]}
           onPress={() => handleUserPress(item.id)}
         >
           <FontAwesomeIcon icon={faEdit} size={16} color="#6B7280" />
         </TouchableOpacity>
         
         <TouchableOpacity 
-          style={[styles.actionButton, styles.deleteButton]}
+          style={[UserManagementStyle.actionButton, UserManagementStyle.deleteButton]}
           onPress={() => handleDeleteUser(item)}
         >
           <FontAwesomeIcon icon={faTrash} size={16} color="#EF4444" />
@@ -192,111 +191,111 @@ const UserManagement: React.FC = () => {
       visible={filterModalVisible}
       onRequestClose={() => setFilterModalVisible(false)}
     >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Filter Users</Text>
+      <View style={UserManagementStyle.modalOverlay}>
+        <View style={UserManagementStyle.modalContent}>
+          <View style={UserManagementStyle.modalHeader}>
+            <Text style={UserManagementStyle.modalTitle}>Filter Users</Text>
             <TouchableOpacity 
               onPress={() => setFilterModalVisible(false)}
-              style={styles.closeButton}
+              style={UserManagementStyle.closeButton}
             >
               <FontAwesomeIcon icon={faTimes} size={20} color="#6B7280" />
             </TouchableOpacity>
           </View>
           
-          <View style={styles.filterSection}>
-            <Text style={styles.filterLabel}>Role</Text>
-            <View style={styles.filterOptions}>
+          <View style={UserManagementStyle.filterSection}>
+            <Text style={UserManagementStyle.filterLabel}>Role</Text>
+            <View style={UserManagementStyle.filterOptions}>
               <TouchableOpacity 
                 style={[
-                  styles.filterOption,
-                  roleFilter === 'all' && styles.filterOptionSelected
+                  UserManagementStyle.filterOption,
+                  roleFilter === 'all' && UserManagementStyle.filterOptionSelected
                 ]}
                 onPress={() => setRoleFilter('all')}
               >
                 <Text style={[
-                  styles.filterOptionText,
-                  roleFilter === 'all' && styles.filterOptionTextSelected
+                  UserManagementStyle.filterOptionText,
+                  roleFilter === 'all' && UserManagementStyle.filterOptionTextSelected
                 ]}>All</Text>
               </TouchableOpacity>
               
               <TouchableOpacity 
                 style={[
-                  styles.filterOption,
-                  roleFilter === 'admin' && styles.filterOptionSelected
+                  UserManagementStyle.filterOption,
+                  roleFilter === 'admin' && UserManagementStyle.filterOptionSelected
                 ]}
                 onPress={() => setRoleFilter('admin')}
               >
                 <Text style={[
-                  styles.filterOptionText,
-                  roleFilter === 'admin' && styles.filterOptionTextSelected
+                  UserManagementStyle.filterOptionText,
+                  roleFilter === 'admin' && UserManagementStyle.filterOptionTextSelected
                 ]}>Admin</Text>
               </TouchableOpacity>
               
               <TouchableOpacity 
                 style={[
-                  styles.filterOption,
-                  roleFilter === 'user' && styles.filterOptionSelected
+                  UserManagementStyle.filterOption,
+                  roleFilter === 'user' && UserManagementStyle.filterOptionSelected
                 ]}
                 onPress={() => setRoleFilter('user')}
               >
                 <Text style={[
-                  styles.filterOptionText,
-                  roleFilter === 'user' && styles.filterOptionTextSelected
+                  UserManagementStyle.filterOptionText,
+                  roleFilter === 'user' && UserManagementStyle.filterOptionTextSelected
                 ]}>User</Text>
               </TouchableOpacity>
             </View>
           </View>
           
-          <View style={styles.filterSection}>
-            <Text style={styles.filterLabel}>Status</Text>
-            <View style={styles.filterOptions}>
+          <View style={UserManagementStyle.filterSection}>
+            <Text style={UserManagementStyle.filterLabel}>Status</Text>
+            <View style={UserManagementStyle.filterOptions}>
               <TouchableOpacity 
                 style={[
-                  styles.filterOption,
-                  statusFilter === 'all' && styles.filterOptionSelected
+                  UserManagementStyle.filterOption,
+                  statusFilter === 'all' && UserManagementStyle.filterOptionSelected
                 ]}
                 onPress={() => setStatusFilter('all')}
               >
                 <Text style={[
-                  styles.filterOptionText,
-                  statusFilter === 'all' && styles.filterOptionTextSelected
+                  UserManagementStyle.filterOptionText,
+                  statusFilter === 'all' && UserManagementStyle.filterOptionTextSelected
                 ]}>All</Text>
               </TouchableOpacity>
               
               <TouchableOpacity 
                 style={[
-                  styles.filterOption,
-                  statusFilter === 'active' && styles.filterOptionSelected
+                  UserManagementStyle.filterOption,
+                  statusFilter === 'active' && UserManagementStyle.filterOptionSelected
                 ]}
                 onPress={() => setStatusFilter('active')}
               >
                 <Text style={[
-                  styles.filterOptionText,
-                  statusFilter === 'active' && styles.filterOptionTextSelected
+                  UserManagementStyle.filterOptionText,
+                  statusFilter === 'active' && UserManagementStyle.filterOptionTextSelected
                 ]}>Active</Text>
               </TouchableOpacity>
               
               <TouchableOpacity 
                 style={[
-                  styles.filterOption,
-                  statusFilter === 'inactive' && styles.filterOptionSelected
+                  UserManagementStyle.filterOption,
+                  statusFilter === 'inactive' && UserManagementStyle.filterOptionSelected
                 ]}
                 onPress={() => setStatusFilter('inactive')}
               >
                 <Text style={[
-                  styles.filterOptionText,
-                  statusFilter === 'inactive' && styles.filterOptionTextSelected
+                  UserManagementStyle.filterOptionText,
+                  statusFilter === 'inactive' && UserManagementStyle.filterOptionTextSelected
                 ]}>Inactive</Text>
               </TouchableOpacity>
             </View>
           </View>
           
           <TouchableOpacity 
-            style={styles.applyButton}
+            style={UserManagementStyle.applyButton}
             onPress={() => setFilterModalVisible(false)}
           >
-            <Text style={styles.applyButtonText}>Apply Filters</Text>
+            <Text style={UserManagementStyle.applyButtonText}>Apply Filters</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -305,46 +304,40 @@ const UserManagement: React.FC = () => {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#6EA9F7" />
-        <Text style={styles.loadingText}>Loading users...</Text>
+      <View style={UserManagementStyle.loadingContainer}>
+        <ActivityIndicator size="large" color="#E39F0C" />
+        <Text style={UserManagementStyle.loadingText}>Loading users...</Text>
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>User Management</Text>
-        <TouchableOpacity 
-          style={styles.addButton}
-          onPress={() => Alert.alert('Info', 'Add user functionality would go here')}
-        >
-          <FontAwesomeIcon icon={faPlus} size={18} color="white" />
-        </TouchableOpacity>
+    <SafeAreaView style={UserManagementStyle.container}>
+      <View style={UserManagementStyle.header}>
+        <Text style={UserManagementStyle.title}>User Management</Text>
       </View>
       
-      <View style={styles.searchContainer}>
-        <View style={styles.searchBox}>
+      <View style={UserManagementStyle.searchContainer}>
+        <View style={UserManagementStyle.searchBox}>
           <FontAwesomeIcon icon={faSearch} size={16} color="#6B7280" />
           <TextInput
-            style={styles.searchInput}
+            style={UserManagementStyle.searchInput}
             placeholder="Search users..."
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
         </View>
         
-        <View style={styles.filterActions}>
+        <View style={UserManagementStyle.filterActions}>
           <TouchableOpacity 
-            style={styles.filterButton}
+            style={UserManagementStyle.filterButton}
             onPress={() => setFilterModalVisible(true)}
           >
             <FontAwesomeIcon icon={faFilter} size={16} color="#6B7280" />
           </TouchableOpacity>
           
           <TouchableOpacity 
-            style={styles.sortButton}
+            style={UserManagementStyle.sortButton}
             onPress={toggleSortOrder}
           >
             <FontAwesomeIcon icon={faSort} size={16} color="#6B7280" />
@@ -353,15 +346,15 @@ const UserManagement: React.FC = () => {
       </View>
       
       {filteredUsers.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>No users found</Text>
+        <View style={UserManagementStyle.emptyContainer}>
+          <Text style={UserManagementStyle.emptyText}>No users found</Text>
         </View>
       ) : (
         <FlatList
           data={filteredUsers}
           renderItem={renderUserItem}
           keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={UserManagementStyle.listContent}
           showsVerticalScrollIndicator={false}
         />
       )}

@@ -28,7 +28,8 @@ import {
   rateFood,
   getFoodExplanation,
 } from "../../services/api";
-import { styles } from "../../styles/resultFoodStyle";
+import Row from "../../components/rowBack";
+import ResultFoodStyle from "../../styles/resultFoodStyle";
 
 // Extended interfaces
 interface NutrientExplanation {
@@ -318,9 +319,9 @@ const ResultFood: React.FC = () => {
 
   if (loading) {
     return (
-      <View style={[styles.container, styles.centerContainer]}>
+      <View style={[ResultFoodStyle.container, ResultFoodStyle.centerContainer]}>
         <ActivityIndicator size="large" color={getEmotionColor()} />
-        <Text style={styles.loadingText}>
+        <Text style={ResultFoodStyle.loadingText}>
           Finding the perfect food for your mood...
         </Text>
       </View>
@@ -329,18 +330,18 @@ const ResultFood: React.FC = () => {
 
   if (error || !recommendation) {
     return (
-      <View style={[styles.container, styles.centerContainer]}>
-        <Text style={styles.errorText}>
+      <View style={[ResultFoodStyle.container, ResultFoodStyle.centerContainer]}>
+        <Text style={ResultFoodStyle.errorText}>
           {error || "No recommendations found."}
         </Text>
         <TouchableOpacity
           style={[
-            styles.actionButton,
+            ResultFoodStyle.actionButton,
             { backgroundColor: getEmotionColor(), marginTop: 20 },
           ]}
           onPress={handleBack}
         >
-          <Text style={styles.actionButtonText}>Go Back</Text>
+          <Text style={ResultFoodStyle.actionButtonText}>Go Back</Text>
         </TouchableOpacity>
       </View>
     );
@@ -356,31 +357,26 @@ const ResultFood: React.FC = () => {
   );
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={handleBack} style={styles.headerBackButton}>
-          <FontAwesomeIcon icon={faArrowLeft} size={24} color="#5C6A7E" />
-        </TouchableOpacity>
-        <Text style={styles.title}>Food Recommendation</Text>
+    <View style={ResultFoodStyle.container}>
+      <View style={ResultFoodStyle.info}>
+        <Row />
       </View>
-
       {/* User greeting */}
-      <View style={styles.userGreeting}>
-        <Text style={styles.userGreetingText}>
+      <View style={ResultFoodStyle.userGreeting}>
+        <Text style={ResultFoodStyle.userGreetingText}>
           Hey{userName ? ` ${userName}` : ""}! Based on your
-          <Text style={[styles.highlightText, { color: getEmotionColor() }]}>
+          <Text style={[ResultFoodStyle.highlightText, { color: getEmotionColor() }]}>
             {" "}
             {emotion}{" "}
           </Text>
           mood, here's what we recommend for
-          <Text style={styles.highlightText}> {mealTime}</Text>
+          <Text style={ResultFoodStyle.highlightText}> {mealTime}</Text>
         </Text>
       </View>
 
-      <ScrollView style={styles.scrollContent}>
+      <ScrollView style={ResultFoodStyle.scrollContent}>
         {/* Main food card */}
-        <View style={styles.mainFoodCard}>
+        <View style={ResultFoodStyle.mainFoodCard}>
           <Image
             source={{
               uri:
@@ -389,16 +385,16 @@ const ResultFood: React.FC = () => {
                   1
                 )}/FFFFFF?text=${encodeURIComponent(recommendation.food)}`,
             }}
-            style={styles.mainFoodImage}
+            style={ResultFoodStyle.mainFoodImage}
             resizeMode="cover"
           />
 
-          <View style={styles.mainFoodDetails}>
-            <View style={styles.foodTitleRow}>
-              <Text style={styles.mainFoodName}>{recommendation.food}</Text>
+          <View style={ResultFoodStyle.mainFoodDetails}>
+            <View style={ResultFoodStyle.foodTitleRow}>
+              <Text style={ResultFoodStyle.mainFoodName}>{recommendation.food}</Text>
             </View>
 
-            <Text style={styles.foodType}>
+            <Text style={ResultFoodStyle.foodType}>
               {recommendation.type.charAt(0).toUpperCase() +
                 recommendation.type.slice(1)}
             </Text>
@@ -407,11 +403,11 @@ const ResultFood: React.FC = () => {
             {explanation && (
               <View
                 style={[
-                  styles.explanationSection,
+                  ResultFoodStyle.explanationSection,
                   { borderLeftColor: getEmotionColor() },
                 ]}
               >
-                <Text style={styles.explanationTitle}>
+                <Text style={ResultFoodStyle.explanationTitle}>
                   <FontAwesomeIcon
                     icon={faLightbulb}
                     size={16}
@@ -419,12 +415,12 @@ const ResultFood: React.FC = () => {
                   />
                   How this helps your {emotion} mood:
                 </Text>
-                <Text style={styles.explanationText}>
+                <Text style={ResultFoodStyle.explanationText}>
                   {explanation.emotion_explanation}
                 </Text>
 
                 {explanation.scientific_summary && (
-                  <Text style={styles.scientificSummary}>
+                  <Text style={ResultFoodStyle.scientificSummary}>
                     {explanation.scientific_summary}
                   </Text>
                 )}
@@ -433,10 +429,10 @@ const ResultFood: React.FC = () => {
 
             {/* Priority nutrients section - enhanced version */}
             {nonZeroPriorityNutrients.length > 0 ? (
-              <View style={styles.priorityNutrientsContainer}>
+              <View style={ResultFoodStyle.priorityNutrientsContainer}>
                 <Text
                   style={[
-                    styles.priorityNutrientTitle,
+                    ResultFoodStyle.priorityNutrientTitle,
                     { color: getEmotionColor() },
                   ]}
                 >
@@ -460,14 +456,14 @@ const ResultFood: React.FC = () => {
                   return (
                     <TouchableOpacity
                       key={index}
-                      style={styles.priorityNutrientItem}
+                      style={ResultFoodStyle.priorityNutrientItem}
                       onPress={() =>
                         nutrientExp && showNutrientDetail(nutrientExp)
                       }
                       disabled={!nutrientExp}
                     >
-                      <View style={styles.priorityNutrientHeader}>
-                        <Text style={styles.priorityNutrientName}>
+                      <View style={ResultFoodStyle.priorityNutrientHeader}>
+                        <Text style={ResultFoodStyle.priorityNutrientName}>
                           {nutrientName}
                         </Text>
                         {nutrientExp && (
@@ -478,7 +474,7 @@ const ResultFood: React.FC = () => {
                           />
                         )}
                       </View>
-                      <Text style={styles.priorityNutrientValue}>
+                      <Text style={ResultFoodStyle.priorityNutrientValue}>
                         {typeof nutrientValue === "number"
                           ? nutrientValue.toFixed(1)
                           : nutrientValue}{" "}
@@ -486,7 +482,7 @@ const ResultFood: React.FC = () => {
                       </Text>
                       {nutrientExp && (
                         <Text
-                          style={styles.priorityNutrientShortDesc}
+                          style={ResultFoodStyle.priorityNutrientShortDesc}
                           numberOfLines={2}
                         >
                           {nutrientExp.explanation}
@@ -498,10 +494,10 @@ const ResultFood: React.FC = () => {
               </View>
             ) : (
               !loadingNutrients && (
-                <View style={styles.priorityNutrientSection}>
+                <View style={ResultFoodStyle.priorityNutrientSection}>
                   <Text
                     style={[
-                      styles.priorityNutrientTitle,
+                      ResultFoodStyle.priorityNutrientTitle,
                       { color: getEmotionColor() },
                     ]}
                   >
@@ -513,11 +509,11 @@ const ResultFood: React.FC = () => {
 
             {/* Rate this recommendation */}
             {!hasRated && (
-              <View style={styles.ratingContainer}>
-                <Text style={styles.ratingLabel}>
+              <View style={ResultFoodStyle.ratingContainer}>
+                <Text style={ResultFoodStyle.ratingLabel}>
                   Rate this recommendation:
                 </Text>
-                <View style={styles.starContainer}>
+                <View style={ResultFoodStyle.starContainer}>
                   {[1, 2, 3, 4, 5].map((star) => (
                     <TouchableOpacity
                       key={star}
@@ -527,7 +523,7 @@ const ResultFood: React.FC = () => {
                         icon={faStar}
                         size={24}
                         color={userRating >= star ? "#FFC107" : "#E5E7EB"}
-                        style={styles.starIcon}
+                        style={ResultFoodStyle.starIcon}
                       />
                     </TouchableOpacity>
                   ))}
@@ -536,8 +532,8 @@ const ResultFood: React.FC = () => {
             )}
 
             {hasRated && (
-              <View style={styles.ratedContainer}>
-                <Text style={styles.ratedText}>
+              <View style={ResultFoodStyle.ratedContainer}>
+                <Text style={ResultFoodStyle.ratedText}>
                   Thanks for your rating of {userRating}/5!
                 </Text>
               </View>
@@ -546,11 +542,11 @@ const ResultFood: React.FC = () => {
         </View>
 
         {/* Complete Nutritional information */}
-        <View style={styles.nutritionSection}>
-          <Text style={styles.sectionTitle}>
+        <View style={ResultFoodStyle.nutritionSection}>
+          <Text style={ResultFoodStyle.sectionTitle}>
             Complete Nutritional Information
           </Text>
-          <View style={styles.nutrientsGrid}>
+          <View style={ResultFoodStyle.nutrientsGrid}>
             {recommendation.nutrition_data &&
               Object.entries(recommendation.nutrition_data)
                 // Chỉ lọc ra các thuộc tính không phải nutrient
@@ -599,25 +595,25 @@ const ResultFood: React.FC = () => {
                     <TouchableOpacity
                       key={index}
                       style={[
-                        styles.nutrientItem,
-                        isPriority && styles.nutrientItemPriority,
+                        ResultFoodStyle.nutrientItem,
+                        isPriority && ResultFoodStyle.nutrientItemPriority,
                       ]}
                       onPress={() =>
                         nutrientExp && showNutrientDetail(nutrientExp)
                       }
                       disabled={!nutrientExp}
                     >
-                      <Text style={styles.nutrientName}>{name}</Text>
-                      <Text style={styles.nutrientValue}>
+                      <Text style={ResultFoodStyle.nutrientName}>{name}</Text>
+                      <Text style={ResultFoodStyle.nutrientValue}>
                         {typeof value === "number" ? value.toFixed(1) : value}
-                        <Text style={styles.nutrientUnit}>
+                        <Text style={ResultFoodStyle.nutrientUnit}>
                           {getNutrientUnit(name)}
                         </Text>
                       </Text>
                       {isPriority && (
                         <Text
                           style={[
-                            styles.priorityLabel,
+                            ResultFoodStyle.priorityLabel,
                             { color: getEmotionColor() },
                           ]}
                         >
@@ -639,44 +635,44 @@ const ResultFood: React.FC = () => {
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Nutrient Details</Text>
+        <View style={ResultFoodStyle.modalContainer}>
+          <View style={ResultFoodStyle.modalContent}>
+            <View style={ResultFoodStyle.modalHeader}>
+              <Text style={ResultFoodStyle.modalTitle}>Nutrient Details</Text>
               <TouchableOpacity
                 onPress={() => setModalVisible(false)}
-                style={styles.modalCloseButton}
+                style={ResultFoodStyle.modalCloseButton}
               >
-                <Text style={styles.modalCloseText}>Close</Text>
+                <Text style={ResultFoodStyle.modalCloseText}>Close</Text>
               </TouchableOpacity>
             </View>
 
             {selectedNutrient && (
-              <View style={styles.modalBody}>
-                <Text style={styles.modalNutrientName}>
+              <View style={ResultFoodStyle.modalBody}>
+                <Text style={ResultFoodStyle.modalNutrientName}>
                   {selectedNutrient.name}
                 </Text>
-                <Text style={styles.modalNutrientValue}>
+                <Text style={ResultFoodStyle.modalNutrientValue}>
                   {selectedNutrient.value.toFixed(1)}{" "}
                   {getNutrientUnit(selectedNutrient.name)} in this{" "}
                   {recommendation.type}
                 </Text>
 
-                <View style={styles.modalDivider} />
+                <View style={ResultFoodStyle.modalDivider} />
 
-                <Text style={styles.modalSectionTitle}>
+                <Text style={ResultFoodStyle.modalSectionTitle}>
                   How it helps your {emotion} mood:
                 </Text>
-                <Text style={styles.modalExplanation}>
+                <Text style={ResultFoodStyle.modalExplanation}>
                   {selectedNutrient.explanation}
                 </Text>
 
-                <View style={styles.modalDivider} />
+                <View style={ResultFoodStyle.modalDivider} />
 
-                <Text style={styles.modalSectionTitle}>
+                <Text style={ResultFoodStyle.modalSectionTitle}>
                   Research-backed benefits:
                 </Text>
-                <Text style={styles.modalResearch}>
+                <Text style={ResultFoodStyle.modalResearch}>
                   Studies have shown that {selectedNutrient.name} can
                   significantly impact your emotional state, especially when
                   experiencing {emotion} moods.
@@ -689,16 +685,16 @@ const ResultFood: React.FC = () => {
 
       {/* Footer action buttons - show save button only after rating */}
       {hasRated && (
-        <View style={styles.footer}>
+        <View style={ResultFoodStyle.footer}>
           <TouchableOpacity
             style={[
-              styles.footerSaveButton,
+              ResultFoodStyle.footerSaveButton,
               { backgroundColor: getEmotionColor() },
             ]}
             onPress={handleSaveRecommendation}
           >
             <FontAwesomeIcon icon={faFloppyDisk} size={20} color="white" />
-            <Text style={[styles.footerButtonText, { color: "white" }]}>
+            <Text style={[ResultFoodStyle.footerButtonText, { color: "white" }]}>
               Save & Continue
             </Text>
           </TouchableOpacity>

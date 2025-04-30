@@ -1,7 +1,6 @@
-// src/styles/adminStyles/userManagementStyle.ts
 import { StyleSheet } from "react-native";
 
-const styles = StyleSheet.create({
+const UserManagementStyle = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F9FAFB',
@@ -10,7 +9,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'white',
+    backgroundColor: '#F9FAFB',
     paddingVertical: 16,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
@@ -240,4 +239,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default styles;
+export default UserManagementStyle;

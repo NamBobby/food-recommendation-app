@@ -67,7 +67,7 @@ const Home = () => {
   // Render mood status
   const renderMoodStatus = () => {
     if (loading) {
-      return <ActivityIndicator size="small" color="#6ea9f7" />;
+      return <ActivityIndicator size="small" color="#E39F0C" />;
     }
     
     if (todayEmotion) {
