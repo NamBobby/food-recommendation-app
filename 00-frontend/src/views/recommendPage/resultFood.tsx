@@ -82,6 +82,8 @@ const ResultFood: React.FC = () => {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [selectedNutrient, setSelectedNutrient] =
     useState<NutrientExplanation | null>(null);
+  const [imageLoading, setImageLoading] = useState<boolean>(true);
+  const [savingRecommendation, setSavingRecommendation] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchRecommendations = async () => {
@@ -117,16 +119,17 @@ const ResultFood: React.FC = () => {
             setUserName(response.user_name);
           }
 
-          // Set log ID
-          if (response.log_id) {
-            setLogId(response.log_id);
-          }
-
           // Set recommendation
           if (response.recommendation) {
+            // Clean up the recommendation to remove image_url from nutrition_data
+            if (response.recommendation.nutrition_data && 
+                response.recommendation.nutrition_data.image_url) {
+              delete response.recommendation.nutrition_data.image_url;
+            }
+            
             setRecommendation(response.recommendation);
 
-            // Get explanation for this recommendation
+            // Get explanation for this recommendation - do this in background
             fetchExplanation(
               response.recommendation,
               storedEmotion || "neutral"
@@ -140,13 +143,16 @@ const ResultFood: React.FC = () => {
             setPriorityNutrients(response.priority_nutrients);
             setLoadingNutrients(false);
           }
+          
+          // Turn off main loading - don't wait for image or explanation
+          setLoading(false);
         } else {
           setError("Invalid response format");
+          setLoading(false);
         }
       } catch (error: any) {
         console.error("Error fetching recommendations:", error);
         setError("Failed to get food recommendations. Please try again.");
-      } finally {
         setLoading(false);
       }
     };
@@ -175,37 +181,40 @@ const ResultFood: React.FC = () => {
   };
 
   const handleRating = async (rating: number) => {
-    if (!logId) return;
-
     setUserRating(rating);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setHasRated(true);
-
-    try {
-      await rateFood(logId, rating);
-
-      setTimeout(() => {
-        Alert.alert(
-          "Thank You!",
-          "Your feedback helps us improve our recommendations.",
-          [{ text: "OK" }]
-        );
-      }, 500);
-    } catch (error) {
-      console.error("Error submitting rating:", error);
-    }
+    
+    // No API call here, we'll save when user clicks "Save & Continue"
   };
 
   const handleSaveRecommendation = async () => {
-    if (!recommendation || !logId) {
+    if (!recommendation) {
       Alert.alert("Error", "No recommendation to save");
       return;
     }
 
     try {
+      setSavingRecommendation(true);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
-      await selectFood(logId, recommendation.food);
+      // Get saved preferences from AsyncStorage
+      const storedEmotion = await AsyncStorage.getItem("emotion") || emotion;
+      const storedMealTime = await AsyncStorage.getItem("mealTime") || mealTime;
+      const storedFoodType = await AsyncStorage.getItem("foodType") || foodType || "";
+
+      // Create log entry with rating
+      const response = await rateFood(
+        userRating,
+        storedEmotion,
+        storedMealTime,
+        storedFoodType,
+        recommendation.food
+      );
+
+      if (response && response.log_id) {
+        setLogId(response.log_id);
+      }
 
       Alert.alert("Success", "Food recommendation saved to your profile!", [
         { text: "OK", onPress: () => navigation.navigate("Home") },
@@ -213,6 +222,8 @@ const ResultFood: React.FC = () => {
     } catch (error: any) {
       console.error("Error saving recommendation:", error);
       Alert.alert("Error", "Failed to save recommendation");
+    } finally {
+      setSavingRecommendation(false);
     }
   };
 
@@ -377,17 +388,26 @@ const ResultFood: React.FC = () => {
       <ScrollView style={ResultFoodStyle.scrollContent}>
         {/* Main food card */}
         <View style={ResultFoodStyle.mainFoodCard}>
-          <Image
-            source={{
-              uri:
-                recommendation.image_url ||
-                `https://via.placeholder.com/400/${getEmotionColor().substring(
-                  1
-                )}/FFFFFF?text=${encodeURIComponent(recommendation.food)}`,
-            }}
-            style={ResultFoodStyle.mainFoodImage}
-            resizeMode="cover"
-          />
+          <View style={ResultFoodStyle.mainFoodImageContainer}>
+            <Image
+              source={{
+                uri: recommendation.image_url ||
+                  `https://via.placeholder.com/400/${getEmotionColor().substring(
+                    1
+                  )}/FFFFFF?text=${encodeURIComponent(recommendation.food)}`,
+              }}
+              style={ResultFoodStyle.mainFoodImage}
+              resizeMode="cover"
+              onLoadStart={() => setImageLoading(true)}
+              onLoad={() => setImageLoading(false)}
+              onError={() => setImageLoading(false)}
+            />
+            {imageLoading && (
+              <View style={ResultFoodStyle.imageLoadingOverlay}>
+                <ActivityIndicator size="large" color={getEmotionColor()} />
+              </View>
+            )}
+          </View>
 
           <View style={ResultFoodStyle.mainFoodDetails}>
             <View style={ResultFoodStyle.foodTitleRow}>
@@ -549,8 +569,8 @@ const ResultFood: React.FC = () => {
           <View style={ResultFoodStyle.nutrientsGrid}>
             {recommendation.nutrition_data &&
               Object.entries(recommendation.nutrition_data)
-                // Chỉ lọc ra các thuộc tính không phải nutrient
-                .filter(([name, _]) => name !== "food" && name !== "food_type")
+                // Filter out non-nutrient properties
+                .filter(([name, _]) => name !== "food" && name !== "food_type" && name !== "image_url")
                 .sort((a, b) => {
                   // First check if both are priority nutrients
                   const aIsPriority =
@@ -585,7 +605,7 @@ const ResultFood: React.FC = () => {
                   return aIsPriority ? -1 : 1;
                 })
                 .map(([name, value], index) => {
-                  // Chỉ đánh dấu là priority nếu giá trị > 0
+                  // Only mark as priority if value > 0
                   const isPriority =
                     isPriorityNutrient(name) &&
                     hasNonZeroValue(name, Number(value));
@@ -692,11 +712,18 @@ const ResultFood: React.FC = () => {
               { backgroundColor: getEmotionColor() },
             ]}
             onPress={handleSaveRecommendation}
+            disabled={savingRecommendation}
           >
-            <FontAwesomeIcon icon={faFloppyDisk} size={20} color="white" />
-            <Text style={[ResultFoodStyle.footerButtonText, { color: "white" }]}>
-              Save & Continue
-            </Text>
+            {savingRecommendation ? (
+              <ActivityIndicator color="white" size="small" />
+            ) : (
+              <>
+                <FontAwesomeIcon icon={faFloppyDisk} size={20} color="white" />
+                <Text style={[ResultFoodStyle.footerButtonText, { color: "white" }]}>
+                  Save & Continue
+                </Text>
+              </>
+            )}
           </TouchableOpacity>
         </View>
       )}

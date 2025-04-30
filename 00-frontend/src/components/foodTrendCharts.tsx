@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { View, Text, Dimensions, ScrollView } from 'react-native';
 import { BarChart } from 'react-native-chart-kit';
-import styles from '../styles/foodTrendsStyle';
+import FoodTrendsStyle from '../styles/foodTrendsStyle';
 import { FoodTrendItem, getEmotionColor } from './types';
 
 interface FoodTrendChartsProps {
@@ -96,8 +96,8 @@ const FoodTrendCharts: React.FC<FoodTrendChartsProps> = ({ filteredTrends }) => 
     
     if (filteredTrends.length === 0) {
       return (
-        <View style={styles.noDataContainer}>
-          <Text style={styles.noDataText}>No data available for the selected filters</Text>
+        <View style={FoodTrendsStyle.noDataContainer}>
+          <Text style={FoodTrendsStyle.noDataText}>No data available for the selected filters</Text>
         </View>
       );
     }
@@ -114,7 +114,7 @@ const FoodTrendCharts: React.FC<FoodTrendChartsProps> = ({ filteredTrends }) => 
     
     return (
       <View>
-        <Text style={styles.sectionTitle}>Average Rating by Emotion</Text>
+        <Text style={FoodTrendsStyle.sectionTitle}>Average Rating by Emotion</Text>
         <ScrollView 
           horizontal 
           showsHorizontalScrollIndicator={true}
@@ -149,15 +149,15 @@ const FoodTrendCharts: React.FC<FoodTrendChartsProps> = ({ filteredTrends }) => 
             showValuesOnTopOfBars={true}
           />
         </ScrollView>
-        <View style={styles.legendContainer}>
+        <View style={FoodTrendsStyle.legendContainer}>
           {emotionData.map((item, index) => (
-            <View key={index} style={styles.legendItem}>
-              <View style={[styles.legendColor, { backgroundColor: item.color }]} />
-              <Text style={styles.legendText}>{item.name}</Text>
+            <View key={index} style={FoodTrendsStyle.legendItem}>
+              <View style={[FoodTrendsStyle.legendColor, { backgroundColor: item.color }]} />
+              <Text style={FoodTrendsStyle.legendText}>{item.name}</Text>
             </View>
           ))}
         </View>
-        <Text style={styles.scrollHint}>Swipe left/right to see more</Text>
+        <Text style={FoodTrendsStyle.scrollHint}>Swipe left/right to see more</Text>
       </View>
     );
   };
@@ -183,7 +183,7 @@ const FoodTrendCharts: React.FC<FoodTrendChartsProps> = ({ filteredTrends }) => 
     
     return (
       <View style={{ marginTop: 24 }}>
-        <Text style={styles.sectionTitle}>Average Rating by Meal Time</Text>
+        <Text style={FoodTrendsStyle.sectionTitle}>Average Rating by Meal Time</Text>
         <ScrollView 
           horizontal 
           showsHorizontalScrollIndicator={true}
@@ -218,7 +218,7 @@ const FoodTrendCharts: React.FC<FoodTrendChartsProps> = ({ filteredTrends }) => 
             showValuesOnTopOfBars={true}
           />
         </ScrollView>
-        <Text style={styles.scrollHint}>Swipe left/right to see more</Text>
+        <Text style={FoodTrendsStyle.scrollHint}>Swipe left/right to see more</Text>
       </View>
     );
   };
@@ -244,7 +244,7 @@ const FoodTrendCharts: React.FC<FoodTrendChartsProps> = ({ filteredTrends }) => 
     
     return (
       <View style={{ marginTop: 24 }}>
-        <Text style={styles.sectionTitle}>Average Rating by Food Type</Text>
+        <Text style={FoodTrendsStyle.sectionTitle}>Average Rating by Food Type</Text>
         <ScrollView 
           horizontal 
           showsHorizontalScrollIndicator={true}
@@ -279,7 +279,7 @@ const FoodTrendCharts: React.FC<FoodTrendChartsProps> = ({ filteredTrends }) => 
             showValuesOnTopOfBars={true}
           />
         </ScrollView>
-        <Text style={styles.scrollHint}>Swipe left/right to see more</Text>
+        <Text style={FoodTrendsStyle.scrollHint}>Swipe left/right to see more</Text>
       </View>
     );
   };

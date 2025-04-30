@@ -134,7 +134,7 @@ def get_food_types():
 
 @food_api.route("/recommend-food", methods=["POST"])
 def recommend_food():
-    """API returns food recommendations based on emotion and user info"""
+    """API returns food recommendations based on emotion and user info without saving to database"""
     user = get_user_from_request_token()
     
     if not user:
@@ -154,10 +154,6 @@ def recommend_food():
         return jsonify({"error": "Meal time is required"}), 400
     
     try:
-        # Calculate age for personalized recommendation
-        today = date.today()
-        age = today.year - user.date_of_birth.year - ((today.month, today.day) < (user.date_of_birth.month, user.date_of_birth.day))
-        
         # Get recommendations from model
         recommendations = get_food_recommendations(
             emotion=emotion,
@@ -170,28 +166,20 @@ def recommend_food():
         # Get recommendation
         recommendation = recommendations.get("recommendation")
         
-        # Save recommendation to database
-        log_entry = UserFoodLog(
-            user_id=user.id,
-            mood=emotion,
-            meal_time=meal_time,
-            food_type=food_type if food_type else '',
-            recommended_food=recommendation.get("food", "") if recommendation else ""
-        )
-        db.session.add(log_entry)
-        db.session.commit()
-        
         # Get priority nutrients for the emotion
         from models.food_recommendation_model import EMOTION_PRIORITY_NUTRIENTS
         priority_nutrients = EMOTION_PRIORITY_NUTRIENTS.get(emotion.lower(), [])
         
-        # Return structured response
+        # Return structured response without creating a log entry
         response = {
             "status": "success",
             "user_name": user.name,
             "recommendation": recommendation,
             "priority_nutrients": priority_nutrients,
-            "log_id": log_entry.id
+            "user_id": user.id,  
+            "emotion": emotion,  
+            "meal_time": meal_time,  
+            "food_type": food_type if food_type else ""  
         }
         
         return jsonify(response)
@@ -202,7 +190,7 @@ def recommend_food():
 
 @food_api.route("/select-food", methods=["POST"])
 def select_food():
-    """API records the food selected by the user"""
+    """API updates the food selected by the user if log entry exists"""
     user = get_user_from_request_token()
     
     if not user:
@@ -237,36 +225,44 @@ def select_food():
 
 @food_api.route("/rate-food", methods=["POST"])
 def rate_food():
-    """API records user rating for a food recommendation"""
+    """API creates food log entry with user rating"""
     user = get_user_from_request_token()
     
     if not user:
         return jsonify({"error": "Invalid or expired token"}), 401
     
     data = request.json
-    log_id = data.get("log_id")
     rating = data.get("rating")  # 1-5 rating
+    emotion = data.get("emotion")
+    meal_time = data.get("meal_time")
+    food_type = data.get("food_type", "")
+    recommended_food = data.get("recommended_food")
     
-    if not log_id or rating is None:
-        return jsonify({"error": "Log ID and rating are required"}), 400
+    if not rating or not emotion or not meal_time or not recommended_food:
+        return jsonify({"error": "Rating, emotion, meal_time, and recommended_food are required"}), 400
     
     try:
         rating = int(rating)
         if rating < 1 or rating > 5:
             return jsonify({"error": "Rating must be between 1 and 5"}), 400
-            
-        log_entry = UserFoodLog.query.filter_by(id=log_id, user_id=user.id).first()
         
-        if not log_entry:
-            return jsonify({"error": "Log entry not found"}), 404
+        # Create a new log entry with the rating
+        log_entry = UserFoodLog(
+            user_id=user.id,
+            mood=emotion,
+            meal_time=meal_time,
+            food_type=food_type,
+            recommended_food=recommended_food,
+            feedback_rating=rating
+        )
         
-        # Update rating
-        log_entry.feedback_rating = rating
+        db.session.add(log_entry)
         db.session.commit()
         
         return jsonify({
             "status": "success",
-            "message": "Food rating recorded successfully"
+            "message": "Food recommendation and rating recorded successfully",
+            "log_id": log_entry.id
         })
         
     except Exception as e:

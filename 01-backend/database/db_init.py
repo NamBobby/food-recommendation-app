@@ -11,16 +11,14 @@ db = SQLAlchemy(app)
 # Check if we should drop all tables (for development/testing)
 RESET_DATABASE = False  
 
-# Bảng lưu thông tin người dùng
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(255), unique=True, nullable=False)
     password_hash = db.Column(db.Text, nullable=False)
     role = db.Column(db.String(10), nullable=False, default="user")
-    date_of_birth = db.Column(db.Date, nullable=False)  # Ngày sinh để tính tuổi
+    date_of_birth = db.Column(db.Date, nullable=False)  
 
-# Bảng lưu lịch sử chọn món của người dùng - Đã cập nhật theo yêu cầu
 class UserFoodLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="CASCADE"))

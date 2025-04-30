@@ -406,7 +406,25 @@ export const ResultFoodStyle = StyleSheet.create({
     color: "#4B5563",
     lineHeight: 20,
     fontStyle: "italic",
-  }
+  },
+  mainFoodImageContainer: {
+    position: 'relative',
+    width: '100%',
+    height: 200,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    overflow: 'hidden',
+  },
+  imageLoadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });
 
 export default ResultFoodStyle;

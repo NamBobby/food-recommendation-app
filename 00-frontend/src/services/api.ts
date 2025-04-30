@@ -178,11 +178,20 @@ export const selectFood = async (logId: number, chosenFood: string, compatibilit
 };
 
 // Rate food API endpoint
-export const rateFood = async (logId: number, rating: number) => {
+export const rateFood = async (
+  rating: number, 
+  emotion: string, 
+  meal_time: string, 
+  food_type: string,
+  recommended_food: string
+) => {
   try {
     const response = await apiClient.post("/api/food/rate-food", {
-      log_id: logId,
-      rating
+      rating,
+      emotion,
+      meal_time,
+      food_type,
+      recommended_food
     });
     
     return response.data;

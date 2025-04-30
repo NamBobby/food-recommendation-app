@@ -365,7 +365,7 @@ def parallel_with_direct_scoring(emotion, meal_type, age, food_type=None, num_re
             'food': top_food['food'],
             'type': top_food['food_type'],
             'nutrition_data': nutrition_data,
-            'image_url': food_row.get('image_url', ''),  # Include image URL if available
+            'image_url': food_row.get('image_url', ''), 
             'model_scores': {
                 'rank_score': float(top_food['rank_score']),
                 'binary_score': float(top_food['binary_score']),
