@@ -1,138 +1,65 @@
-# 📌 Hướng dẫn cài đặt & chạy dự án Food Recommendation App
+### Project Environment (MUST HAVE): 
 
-## **1️⃣ Các phần mềm cần cài đặt trước khi clone dự án**
-Trước khi chạy dự án, cần cài đặt các phần mềm sau:
+--> Python 3.12.8 
+<!-- (Required for the backend Flask application and AI models) -->
+Download Python via this link: https://www.python.org/downloads/
 
-### **🔹 PostgreSQL (Cơ sở dữ liệu quan hệ - RDBMS)**
-✅ **Tải PostgreSQL** tại: [https://www.postgresql.org/download/](https://www.postgresql.org/download/)  
-✅ **Phiên bản khuyến nghị:** PostgreSQL **15+**  
-✅ **Cài đặt pgAdmin** (nếu muốn quản lý database bằng giao diện đồ họa).  
+--> Node.js v20.14.0 
+<!-- (Required for the frontend React Native application) -->
+Download Node.JS environment via this link: https://nodejs.org/download/release/v20.14.0/
 
-### **🔹 Node.js (Chạy React Native - Expo)**
-✅ **Tải Node.js** tại: [https://nodejs.org/en/download](https://nodejs.org/en/download)  
-✅ **Phiên bản khuyến nghị:** Node.js **18+** (LTS)  
-✅ **Kiểm tra sau khi cài đặt:**
-```bash
-node -v   # Kiểm tra phiên bản Node.js
-npm -v    # Kiểm tra phiên bản npm
-```
+--> PostgreSQL Installer
+PostgreSQL is required for the database. Download and install PostgreSQL from: https://www.postgresql.org/download/
 
-### **🔹 Python (Chạy Flask Backend)**
-✅ **Tải Python** tại: [https://www.python.org/downloads/](https://www.python.org/downloads/)  
-✅ **Phiên bản khuyến nghị:** Python **3.9+**  
-✅ **Kiểm tra sau khi cài đặt:**
-```bash
-python --version   # Kiểm tra phiên bản Python
-pip --version      # Kiểm tra phiên bản pip
-```
+--> pgAdmin (if needed)
+Download pgAdmin tool for easier PostgreSQL management: https://www.pgadmin.org/download/
 
-### **🔹 Concurrently (Chạy cả React Native & Flask cùng lúc)**
-✅ **Cài đặt Concurrently (Toàn cầu)**:
-```bash
-npm install -g concurrently
-```
-✅ **Kiểm tra sau khi cài đặt:**
-```bash
-concurrently --version
-```
+===
 
----
+### Clone the project (if needed):  
+Download that repository via this link: https://github.com/NamBobby/food-recommendation-app
 
-## **2️⃣ Clone & Cài đặt dự án**
-### **🔹 Clone dự án từ GitHub**
-```bash
-git clone https://github.com/your-repo/food-recommendation-app.git
-cd food-recommendation-app
-```
+===
 
-### **🔹 Cài đặt thư viện cho frontend (React Native - Expo)**
-```bash
-cd frontend
-npm install
-```
+### Watch the Project Setup Tutorial video (if needed): 
+https://drive.google.com/file/d/1Ccm2Lc32gt_nFyGsegXB5RryT8_WYCeQ/view?usp=sharing
 
-### **🔹 Cài đặt thư viện cho backend (Flask & PostgreSQL)**
-```bash
-cd ../backend
-pip install -r requirements.txt
-```
+===
 
----
+### Backend Environment Setup (MUST DO FIRST): 
+1. Navigate to the project directory in your terminal.
+2. Navigate to `01-backend` directory following this command: `cd 01-backend/`
+3. Read the `README.MD` file in this directory to understand how to run the project and do the requirements strictly as the project guide "Installation Steps" step by step.
 
-## **3️⃣ Khởi tạo PostgreSQL Database**
-📌 **Mở PostgreSQL Shell và tạo database**:
-```sql
-CREATE DATABASE food_recommendation_db;
-```
+### Frontend Environment Setup (MUST DO): 
+1. Navigate to the project directory in your terminal.
+2. Navigate to `00-frontend` directory following this command: `cd 00-frontend/`
+3. Read the `README.MD` file in this directory to understand how to run the project and do the requirements strictly as the project guide "Installation Steps" step by step.
 
-📌 **Kiểm tra database đã tạo thành công chưa:**
-```sql
-\l
-```
+===
 
-📌 **Thoát PostgreSQL Shell:**
-```sql
-\q
-```
+### Data Preprocessing & Model Training:
+If you're interested in seeing how the data was preprocessed:
+- Access online via Google Colab: https://colab.research.google.com/drive/1cuqiQ28KoVTCVFC1Bpbwj1ZCZnAHPSZX?usp=sharing
+- Or locally in the project: `cd 01-backend/jupyter notebook/` and view the file `Clean_preprocessing_data.ipynb`
 
-📌 **Khởi tạo bảng trong PostgreSQL bằng Flask**
-```bash
-cd backend
-python database/db_init.py
-```
+If you're interested in seeing how the recommendation model was trained:
+- Access online via Google Colab: https://colab.research.google.com/drive/1uNd4ImZRo-ll84lnms0WzyspwbRg8LeL?usp=sharing
+- Or locally in the project: `cd 01-backend/jupyter notebook/` and view the file `Train_food_recommendation_with_Analysis_(Final_version).ipynb`
 
-✅ **Sau khi chạy, PostgreSQL đã sẵn sàng!**
+===
 
----
+### Default Created Account:
 
-## **4️⃣ Chạy dự án (React Native + Flask đồng thời)**
-📌 **Chạy toàn bộ dự án bằng 1 lệnh:**
-```bash
-cd food-recommendation-app
-npm start
-```
+#### User:
 
-📌 **Cách hoạt động:**
-- **React Native (Expo) chạy trên cổng 19000+**
-- **Flask API chạy trên cổng 5000**
+email: user@example.com
+password: 123456
 
-✅ **Truy cập API Flask kiểm tra:**
-```bash
-http://127.0.0.1:5000/get-foods
-http://127.0.0.1:5000/get-nutrient-effectiveness
-```
+#### Admin:
 
-✅ **Chạy ứng dụng trên điện thoại hoặc trình giả lập:**
-- Android: `npx expo run:android`
-- iOS: `npx expo run:ios`
-- Web: `npx expo run:web`
+email: admin@example.com
+password: admin123
 
----
+===
 
-## **5️⃣ Các thư viện quan trọng được sử dụng**
-
-### **🔹 Frontend (React Native - Expo)**
-- `expo`
-- `react-navigation`
-- `styled-components`
-- `axios` (Gọi API Flask)
-- `expo-camera`, `expo-image-picker`
-
-### **🔹 Backend (Flask & PostgreSQL)**
-- `Flask`
-- `Flask-SQLAlchemy` (Kết nối PostgreSQL)
-- `Pandas` (Đọc file CSV)
-- `Psycopg2` (Driver PostgreSQL)
-
----
-
-## **6️⃣ Cấu trúc thư mục dự án**
-```
-/food-recommendation-app  # 🏠 Root project
-│── /frontend             # 📱 React Native (Expo)
-│── /backend              # 🖥️ Flask API + AI Model + PostgreSQL
-│── package.json          # ✅ Chạy cả frontend & backend
-│── README.md             # 📜 Hướng dẫn sử dụng
-```
-
-📢 **Sau khi làm theo hướng dẫn trên, dự án đã sẵn sàng chạy!** 🚀

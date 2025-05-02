@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 
-# Load biến môi trường từ file .env
+# Load environment variables from .env file
 load_dotenv()
 
 class Config:

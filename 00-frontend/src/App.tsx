@@ -1,7 +1,6 @@
 // src/App.tsx
 import { registerRootComponent } from "expo";
 import { AppRegistry } from "react-native";
-import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import {
@@ -16,7 +15,6 @@ import {
   faEye,
   faEyeSlash,
   faUsers,
-  faCog,
   faUtensils,
   faSignOutAlt,
   faPlus,

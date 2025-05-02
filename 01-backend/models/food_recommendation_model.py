@@ -437,7 +437,7 @@ def get_food_recommendations(emotion, birth_date, user_id=None, meal_time=None, 
             food_type=food_type
         )
         
-        # Kiểm tra xem có tìm được recommendation không
+        # Check to see if a recommendation is found.
         if not recommendation:
             return {
                 "error": f"No suitable food found for {emotion} emotion" + 
@@ -445,14 +445,14 @@ def get_food_recommendations(emotion, birth_date, user_id=None, meal_time=None, 
                 "status": "error"
             }
         
-        # Kiểm tra trực tiếp emotion trong EMOTION_PRIORITY_NUTRIENTS
+        # Check emotions directly in EMOTION_PRIORITY_NUTRIENTS
         if emotion not in EMOTION_PRIORITY_NUTRIENTS:
             return {
                 "error": f"Priority nutrients not defined for emotion: {emotion}",
                 "status": "error"
             }
             
-        # Lấy priority nutrients trực tiếp
+        # Get priority nutrients directly
         priority_nutrients = EMOTION_PRIORITY_NUTRIENTS[emotion]
         
         return {
@@ -502,21 +502,21 @@ def personalized_recommendation(user_id, emotion, age, meal_time, preferred_food
     """
     Provide personalized food recommendations based on user history
     """
-    # Kiểm tra emotion hợp lệ
+    # Check valid emotions
     if emotion.lower() not in SUPPORTED_EMOTIONS:
         return {
             "error": f"Unsupported emotion: {emotion}. Valid emotions are: {', '.join(SUPPORTED_EMOTIONS)}",
             "status": "error"
         }
     
-    # Kiểm tra meal_time hợp lệ
+    # Check for valid meal_time
     if meal_time not in SUPPORTED_MEAL_TYPES:
         return {
             "error": f"Unsupported meal type: {meal_time}. Valid meal types are: {', '.join(SUPPORTED_MEAL_TYPES)}",
             "status": "error"
         }
     
-    # Kiểm tra food_type nếu được cung cấp
+    # Check for valid food_type
     if preferred_food_type and preferred_food_type not in SUPPORTED_FOOD_TYPES:
         return {
             "error": f"Unsupported food type: {preferred_food_type}. Valid food types are: {', '.join(SUPPORTED_FOOD_TYPES)}",
@@ -573,7 +573,7 @@ def personalized_recommendation(user_id, emotion, age, meal_time, preferred_food
         if rec.get('food') not in disliked_foods and rec not in adjusted_recommendations:
             adjusted_recommendations.append(rec)
     
-    # Kiểm tra nếu tất cả thức ăn đều bị ghét
+    # Check if all foods are disliked
     if not adjusted_recommendations:
         return {
             "error": "All potential recommendations have been disliked by user",
@@ -581,7 +581,7 @@ def personalized_recommendation(user_id, emotion, age, meal_time, preferred_food
             "disliked_foods": disliked_foods
         }
     
-    # Lấy priority nutrients trực tiếp
+    # Get priority nutrients directly
     if emotion not in EMOTION_PRIORITY_NUTRIENTS:
         return {
             "error": f"Priority nutrients not defined for emotion: {emotion}",

@@ -167,6 +167,10 @@ COPY public."user" (id, name, email, password_hash, role, date_of_birth) FROM st
 --
 
 COPY public.user_food_log (id, user_id, mood, meal_time, food_type, recommended_food, feedback_rating, created_at) FROM stdin;
+1	2	happy	Lunch	Meat	Chorizo	4	2025-05-01 12:31:34.958354
+2	2	happy	Lunch	Vegetables	Kanpyo	5	2025-05-03 00:05:28.388168
+3	2	happy	Breakfast	Grains	Cream cracker	3	2025-05-03 00:05:51.679403
+4	2	neutral	Snack	Dairy	Powdered milk	4	2025-05-03 00:06:38.590256
 \.
 
 
@@ -181,7 +185,7 @@ SELECT pg_catalog.setval('public.nutrient_effectiveness_id_seq', 1, false);
 -- Name: user_food_log_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.user_food_log_id_seq', 1, false);
+SELECT pg_catalog.setval('public.user_food_log_id_seq', 4, true);
 
 
 --

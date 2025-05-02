@@ -1,4 +1,3 @@
-# models/food_explanation_ai.py
 from pathlib import Path
 import random
 import json

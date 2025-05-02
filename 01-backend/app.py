@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
 from database.config import Config
-from database.db_init import db, init_db  # Import init_db function
+from database.db_init import db, init_db  
 from api.routes import auth_api, emotion_api, food_api, explanation_api, admin_api
 
 app = Flask(__name__)
@@ -25,5 +25,4 @@ def home():
     return "✅ Flask & PostgreSQL & AI Model Connected Successfully!"
 
 if __name__ == "__main__":
-    # No need to call init_db() again here since it's called above
-    app.run(host="0.0.0.0", port=5001, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=False)
