@@ -1,5 +1,5 @@
 ### Watch the Project Setup Tutorial video (if needed): 
-https://drive.google.com/file/d/1Ccm2Lc32gt_nFyGsegXB5RryT8_WYCeQ/view?usp=sharing
+https://drive.google.com/file/d/18AolfRhHaXO47Ua0j8WSVZAl1zqtiQiB/view?usp=sharing
 
 ### Instrallation Steps (MUST DO): 
 1. Navigate to the project directory in your terminal.

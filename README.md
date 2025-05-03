@@ -22,7 +22,9 @@ Download that repository via this link: https://github.com/NamBobby/food-recomme
 ===
 
 ### Watch the Project Setup Tutorial video (if needed): 
-https://drive.google.com/file/d/1Ccm2Lc32gt_nFyGsegXB5RryT8_WYCeQ/view?usp=sharing
+https://drive.google.com/file/d/18AolfRhHaXO47Ua0j8WSVZAl1zqtiQiB/view?usp=sharing
+### Watch the Project Demo video (if needed): 
+https://drive.google.com/file/d/1zAo9qRfHGsK-srN-eUTK2u9yfbnzS04C/view?usp=sharing
 
 ===
 
