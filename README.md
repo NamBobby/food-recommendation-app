@@ -1,3 +1,25 @@
+### Mobile Testing Setup (MUST HAVE):
+
+--> Expo Go App
+<!-- (Required for testing the React Native application on your mobile device) -->
+- For iOS users: Download from [App Store](https://apps.apple.com/app/expo-go/id982107779)
+- For Android users: Download from [Google Play Store](https://play.google.com/store/apps/details?id=host.exp.exponent)
+
+===
+
+### Important Notes for Mobile Testing:
+
+After successfully setting up and running the frontend application, you will see a QR code displayed in your terminal or browser. To interact with the app on your mobile device:
+
+1. Make sure your mobile device is connected to the same WiFi network as your development computer
+2. Open the camera app on iOS (or Expo Go app on Android) 
+3. Scan the QR code displayed after running the frontend
+4. The app will automatically load on your mobile device through Expo Go
+
+This allows you to test and interact with the application directly on your mobile device with a native experience, instead of using the web or simulator version.
+
+===
+
 ### Project Environment (MUST HAVE): 
 
 --> Python 3.12.8 
