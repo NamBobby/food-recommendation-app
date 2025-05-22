@@ -463,7 +463,7 @@ def get_food_recommendations(emotion, birth_date, user_id=None, meal_time=None, 
         }
     
     except Exception as e:
-        print(f"❌ Error in recommendation process: {e}")
+        print(f"Error in recommendation process: {e}")
         return {
             "error": f"Failed to generate recommendations: {str(e)}",
             "status": "error"
@@ -498,101 +498,623 @@ def get_user_history(user_id):
     
     return user_history
 
+def get_user_context_history(user_id, emotion, meal_time, food_type):
+    """Get user's rating history for specific context (emotion + meal_time + food_type)"""
+    from database.db_init import UserFoodLog, db
+    
+    query = UserFoodLog.query.filter_by(
+        user_id=user_id,
+        mood=emotion.lower(),
+        meal_time=meal_time
+    )
+    
+    # Add food_type filter if specified
+    if food_type:
+        query = query.filter_by(food_type=food_type)
+    
+    history_entries = query.filter(UserFoodLog.feedback_rating.isnot(None)).all()
+    
+    context_history = []
+    for entry in history_entries:
+        context_history.append({
+            'food': entry.recommended_food,
+            'rating': entry.feedback_rating,
+            'food_type': entry.food_type,
+            'timestamp': entry.created_at
+        })
+    
+    return context_history
+
+def get_all_available_foods_for_context(emotion, meal_time, age, food_type):
+    """Get all foods that could potentially be recommended for this context"""
+    try:
+        # Get base recommendations to see what foods are available
+        base_recs = get_food_recommendations(
+            emotion, 
+            date.today() - timedelta(days=age*365), 
+            meal_time=meal_time, 
+            food_type=food_type
+        )
+        
+        if 'error' in base_recs:
+            return []
+        
+        # Get all foods from recommendation and alternatives
+        all_foods = []
+        
+        if base_recs.get('recommendation'):
+            all_foods.append(base_recs['recommendation']['food'])
+        
+        for alt in base_recs.get('alternatives', []):
+            if alt.get('food'):
+                all_foods.append(alt['food'])
+        
+        # Also get from food_data directly if we have access
+        try:
+            age_group = 'adult' if age > 15 else 'child'
+            
+            # Filter by food type if specified
+            if food_type:
+                filtered_foods = food_data[food_data['food_type'] == food_type]
+            else:
+                filtered_foods = food_data
+            
+            # Filter by nutrition limits
+            valid_foods = filtered_foods[filtered_foods.apply(
+                lambda row: check_nutrient_limits(row, age_group), axis=1
+            )]
+            
+            for _, food_row in valid_foods.iterrows():
+                food_name = food_row['food']
+                if food_name not in all_foods:
+                    all_foods.append(food_name)
+        except Exception as e:
+            print(f"⚠️ Could not access food_data directly: {e}")
+            # Continue with just the foods from base recommendations
+        
+        return list(set(all_foods))  # Remove duplicates
+        
+    except Exception as e:
+        print(f"Error getting available foods: {e}")
+        return []
+
+def analyze_food_state_transition(ratings):
+    """
+    Analyze rating history to determine current food state
+    
+    Logic:
+    - All foods start as NEUTRAL
+    - From NEUTRAL: High rating (>=4) → LIKED, Low rating (<=2) → DISLIKED
+    - From LIKED: Low rating (1st time) → NEUTRAL, Low rating (2nd consecutive time) → DISLIKED
+    - From DISLIKED: High rating → NEUTRAL (give second chance)
+    """
+    
+    if len(ratings) == 0:
+        return 'neutral'  # Default state
+    
+    if len(ratings) == 1:
+        # First rating ever for this food
+        rating = ratings[0]['rating']
+        if rating >= 4:
+            return 'liked'
+        elif rating <= 2:
+            return 'disliked'
+        else:
+            return 'neutral'
+    
+    # Multiple ratings - analyze state transitions
+    # Start from oldest to newest to track state changes
+    ratings_chronological = list(reversed(ratings))  # Oldest first
+    
+    current_state = 'neutral'  # All foods start neutral
+    consecutive_low_from_liked = 0  # Track consecutive low ratings from liked state
+    
+    for i, rating_entry in enumerate(ratings_chronological):
+        rating = rating_entry['rating']
+        
+        if current_state == 'neutral':
+            if rating >= 4:
+                current_state = 'liked'
+                consecutive_low_from_liked = 0  # Reset counter
+                print(f"  State transition: NEUTRAL → LIKED (rating: {rating})")
+            elif rating <= 2:
+                current_state = 'disliked'
+                print(f"  State transition: NEUTRAL → DISLIKED (rating: {rating})")
+            # Rating = 3 stays neutral
+        
+        elif current_state == 'liked':
+            if rating <= 2:
+                consecutive_low_from_liked += 1
+                if consecutive_low_from_liked == 1:
+                    # First low rating from liked state → back to neutral
+                    current_state = 'neutral'
+                    print(f"  State transition: LIKED → NEUTRAL (1st low rating: {rating})")
+                elif consecutive_low_from_liked >= 2:
+                    # Second consecutive low rating from liked → disliked
+                    current_state = 'disliked'
+                    print(f"  State transition: LIKED → DISLIKED (2nd low rating: {rating})")
+            elif rating >= 4:
+                # High rating maintains liked state
+                consecutive_low_from_liked = 0  # Reset counter
+                print(f"  State maintained: LIKED (rating: {rating})")
+            else:
+                # Rating = 3 from liked goes to neutral
+                current_state = 'neutral'
+                consecutive_low_from_liked = 0  # Reset counter
+                print(f"  State transition: LIKED → NEUTRAL (rating: {rating})")
+        
+        elif current_state == 'disliked':
+            if rating >= 4:
+                # High rating from disliked gives second chance (neutral)
+                current_state = 'neutral'
+                consecutive_low_from_liked = 0  # Reset counter
+                print(f"  State transition: DISLIKED → NEUTRAL (2nd chance, rating: {rating})")
+            elif rating == 3:
+                # Neutral rating from disliked also gives second chance
+                current_state = 'neutral'
+                consecutive_low_from_liked = 0  # Reset counter
+                print(f"  State transition: DISLIKED → NEUTRAL (2nd chance, rating: {rating})")
+            # Low rating maintains disliked state
+    
+    return current_state
+
+def analyze_food_preferences_by_context(user_id, emotion, meal_time, food_type):
+    """
+    Simplified food preference analysis:
+    - All foods start as NEUTRAL
+    - NEUTRAL + High rating (>=4) = LIKED
+    - NEUTRAL + Low rating (<=2) = DISLIKED  
+    - LIKED + Low rating (1st time) = NEUTRAL
+    - LIKED + Low rating (2nd time) = DISLIKED
+    """
+    context_history = get_user_context_history(user_id, emotion, meal_time, food_type)
+    
+    if not context_history:
+        print(f"No context history for {emotion}-{meal_time}-{food_type or 'Any'}")
+        return {}, {}, {}
+    
+    # Group ratings by food and sort by timestamp (most recent first)
+    food_ratings = {}
+    for entry in context_history:
+        food = entry['food']
+        rating = entry['rating']
+        timestamp = entry['timestamp']
+        
+        if food not in food_ratings:
+            food_ratings[food] = []
+        
+        food_ratings[food].append({
+            'rating': rating,
+            'timestamp': timestamp
+        })
+    
+    # Sort ratings by timestamp for each food (most recent first)
+    for food in food_ratings:
+        food_ratings[food].sort(key=lambda x: x['timestamp'], reverse=True)
+    
+    # Categorize foods based on simplified logic
+    liked_foods = {}      # food -> latest_rating
+    neutral_foods = {}    # food -> latest_rating  
+    disliked_foods = {}   # food -> latest_rating
+    
+    for food, ratings in food_ratings.items():
+        # Analyze rating history to determine current state
+        current_state = analyze_food_state_transition(ratings)
+        
+        latest_rating = ratings[0]['rating']  # Most recent rating
+        
+        if current_state == 'liked':
+            liked_foods[food] = latest_rating
+            print(f"👍 {food}: LIKED (latest rating: {latest_rating})")
+        elif current_state == 'disliked':
+            disliked_foods[food] = latest_rating
+            print(f"👎 {food}: DISLIKED (latest rating: {latest_rating})")
+        else:  # neutral
+            neutral_foods[food] = latest_rating
+            print(f"😐 {food}: NEUTRAL (latest rating: {latest_rating})")
+    
+    print(f"Context analysis for {emotion}-{meal_time}-{food_type or 'Any'}:")
+    print(f"   👍 Liked: {list(liked_foods.keys())}")
+    print(f"   😐 Neutral: {list(neutral_foods.keys())}")
+    print(f"   👎 Disliked: {list(disliked_foods.keys())}")
+    
+    return liked_foods, neutral_foods, disliked_foods
+
+def reset_disliked_foods_to_neutral(user_id, emotion, meal_time, food_type):
+    """
+    Reset all disliked foods to neutral for this specific context
+    by adding new neutral ratings (rating = 3) instead of modifying existing ones
+    """
+    from database.db_init import UserFoodLog, db
+    
+    try:
+        # Get current preferences
+        liked_foods, neutral_foods, disliked_foods = analyze_food_preferences_by_context(
+            user_id, emotion, meal_time, food_type
+        )
+        
+        if not disliked_foods:
+            print("No disliked foods to reset")
+            return 0
+        
+        # Add neutral ratings (3) for all currently disliked foods
+        reset_count = 0
+        for food_name in disliked_foods.keys():
+            # Create a new log entry with neutral rating
+            new_log = UserFoodLog(
+                user_id=user_id,
+                mood=emotion.lower(),
+                meal_time=meal_time,
+                food_type=food_type or '',
+                recommended_food=food_name,
+                feedback_rating=3  # Neutral rating
+            )
+            
+            db.session.add(new_log)
+            reset_count += 1
+            print(f"Added neutral rating for: {food_name}")
+        
+        db.session.commit()
+        
+        print(f"Reset {reset_count} disliked foods to neutral for context {emotion}-{meal_time}-{food_type or 'Any'}")
+        
+        return reset_count
+        
+    except Exception as e:
+        print(f"Error resetting disliked foods: {e}")
+        db.session.rollback()
+        return 0
+
+def get_user_context_statistics(user_id, emotion, meal_time, food_type=None):
+    """Get statistics about user's rating history for a specific context with state analysis"""
+    from database.db_init import UserFoodLog, db
+    
+    query = UserFoodLog.query.filter_by(
+        user_id=user_id,
+        mood=emotion.lower(),
+        meal_time=meal_time
+    )
+    
+    if food_type:
+        query = query.filter_by(food_type=food_type)
+    
+    entries = query.filter(UserFoodLog.feedback_rating.isnot(None)).all()
+    
+    if not entries:
+        return {
+            'total_ratings': 0,
+            'unique_foods': 0,
+            'avg_rating': 0,
+            'rating_distribution': {},
+            'state_distribution': {'liked': 0, 'neutral': 0, 'disliked': 0}
+        }
+    
+    # Calculate basic statistics
+    ratings = [entry.feedback_rating for entry in entries]
+    unique_foods = set([entry.recommended_food for entry in entries])
+    
+    rating_distribution = {}
+    for rating in range(1, 6):
+        rating_distribution[rating] = ratings.count(rating)
+    
+    # Calculate current state distribution
+    liked_foods, neutral_foods, disliked_foods = analyze_food_preferences_by_context(
+        user_id, emotion, meal_time, food_type
+    )
+    
+    state_distribution = {
+        'liked': len(liked_foods),
+        'neutral': len(neutral_foods),
+        'disliked': len(disliked_foods)
+    }
+    
+    return {
+        'total_ratings': len(ratings),
+        'unique_foods': len(unique_foods),
+        'avg_rating': sum(ratings) / len(ratings),
+        'rating_distribution': rating_distribution,
+        'state_distribution': state_distribution,
+        'latest_ratings': ratings[-5:] if len(ratings) >= 5 else ratings
+    }
+
+def log_recommendation_context(user_id, emotion, meal_time, food_type, recommended_food, context_info=None):
+    """Log additional context information when making recommendations"""
+    try:
+        # This could be used to log recommendation context for analytics
+        # For now, we'll just print debug info
+        stats = get_user_context_statistics(user_id, emotion, meal_time, food_type)
+        
+        print(f"📊 Context Statistics for user {user_id}:")
+        print(f"   Context: {emotion}-{meal_time}-{food_type or 'Any'}")
+        print(f"   Total ratings: {stats['total_ratings']}")
+        print(f"   Unique foods tried: {stats['unique_foods']}")
+        print(f"   Average rating: {stats['avg_rating']:.2f}")
+        print(f"   Rating distribution: {stats['rating_distribution']}")
+        print(f"   State distribution: {stats['state_distribution']}")
+        print(f"   Recommended: {recommended_food}")
+        
+        if context_info:
+            print(f"   Context info: {context_info}")
+            
+    except Exception as e:
+        print(f"Error logging recommendation context: {e}")
+
+def predict_user_satisfaction(user_id, emotion, meal_time, food_type, recommended_food):
+    """Predict how likely the user is to like the recommended food based on context history"""
+    try:
+        # Get user's history for this context
+        context_history = get_user_context_history(user_id, emotion, meal_time, food_type)
+        
+        if not context_history:
+            return 0.5  # Neutral probability for new context
+        
+        # Check if this exact food was recommended before in this context
+        food_history = [entry for entry in context_history if entry['food'] == recommended_food]
+        
+        if food_history:
+            # Calculate average rating for this food in this context
+            avg_rating = sum([entry['rating'] for entry in food_history]) / len(food_history)
+            # Convert to probability (0-1)
+            return (avg_rating - 1) / 4  # Scale from 1-5 to 0-1
+        
+        # If food hasn't been tried in this context, use general context satisfaction
+        all_ratings = [entry['rating'] for entry in context_history]
+        avg_context_rating = sum(all_ratings) / len(all_ratings)
+        
+        return (avg_context_rating - 1) / 4  # Scale from 1-5 to 0-1
+        
+    except Exception as e:
+        print(f"Error predicting user satisfaction: {e}")
+        return 0.5  # Default neutral probability
+
 def personalized_recommendation(user_id, emotion, age, meal_time, preferred_food_type=None):
     """
-    Provide personalized food recommendations based on user history
+    Personalized recommendation system with simplified state logic:
+    - All foods start NEUTRAL
+    - NEUTRAL + High rating (≥4) = LIKED
+    - NEUTRAL + Low rating (≤2) = DISLIKED
+    - LIKED + Low rating (1st time) = NEUTRAL
+    - LIKED + Low rating (2nd time) = DISLIKED
     """
-    # Check valid emotions
+    # Input validation
     if emotion.lower() not in SUPPORTED_EMOTIONS:
         return {
             "error": f"Unsupported emotion: {emotion}. Valid emotions are: {', '.join(SUPPORTED_EMOTIONS)}",
             "status": "error"
         }
     
-    # Check for valid meal_time
     if meal_time not in SUPPORTED_MEAL_TYPES:
         return {
             "error": f"Unsupported meal type: {meal_time}. Valid meal types are: {', '.join(SUPPORTED_MEAL_TYPES)}",
             "status": "error"
         }
     
-    # Check for valid food_type
     if preferred_food_type and preferred_food_type not in SUPPORTED_FOOD_TYPES:
         return {
             "error": f"Unsupported food type: {preferred_food_type}. Valid food types are: {', '.join(SUPPORTED_FOOD_TYPES)}",
             "status": "error"
         }
     
-    # Get user history
-    user_history = get_user_history(user_id)
-    
-    # Get base recommendations
-    base_recs = get_food_recommendations(
-        emotion, 
-        date.today() - timedelta(days=age*365), 
-        meal_time=meal_time, 
-        food_type=preferred_food_type
-    )
-    
-    # Kiểm tra nếu base_recs có lỗi
-    if 'error' in base_recs:
-        return base_recs
-    
-    # Kiểm tra nếu không có lịch sử
-    if not user_history:
-        return base_recs
-    
-    # Analyze user preferences
-    liked_foods = [entry['food'] for entry in user_history if entry['rating'] >= 4]
-    disliked_foods = [entry['food'] for entry in user_history if entry['rating'] <= 2]
-    
-    # Get main recommendation and alternatives
-    recommendation = base_recs.get('recommendation')
-    alternatives = base_recs.get('alternatives', [])
-    
-    # Combine into one list for processing
-    all_recommendations = [recommendation] + alternatives if recommendation else alternatives
-    
-    # Kiểm tra nếu không có recommendation
-    if not all_recommendations:
+    try:
+        print(f"Getting personalized recommendations for user {user_id}")
+        print(f"   Context: {emotion} + {meal_time} + {preferred_food_type or 'Any'}")
+        
+        # Get context-specific user preferences with simplified logic
+        liked_foods, neutral_foods, disliked_foods = analyze_food_preferences_by_context(
+            user_id, emotion, meal_time, preferred_food_type
+        )
+        
+        # Get base recommendations for this context
+        base_recs = get_food_recommendations(
+            emotion, 
+            date.today() - timedelta(days=age*365), 
+            meal_time=meal_time, 
+            food_type=preferred_food_type
+        )
+        
+        if 'error' in base_recs:
+            return base_recs
+        
+        # Extract available recommendations
+        recommendation = base_recs.get('recommendation')
+        alternatives = base_recs.get('alternatives', [])
+        all_recommendations = []
+        
+        if recommendation:
+            all_recommendations.append(recommendation)
+        all_recommendations.extend(alternatives)
+        
+        if not all_recommendations:
+            return {
+                "error": "No recommendations available",
+                "status": "error"
+            }
+        
+        # *** SIMPLIFIED PERSONALIZATION LOGIC ***
+        personalized_recommendations = []
+        
+        # Priority 1: LIKED foods from this context
+        for rec in all_recommendations:
+            if rec and rec.get('food') in liked_foods:
+                rec_copy = rec.copy()
+                rec_copy['personalization_reason'] = f"You love this! (Rating: {liked_foods[rec['food']]}/5)"
+                rec_copy['food_state'] = 'liked'
+                rec_copy['context_rating'] = liked_foods[rec['food']]
+                personalized_recommendations.append(rec_copy)
+                print(f"Found LIKED food: {rec.get('food')} (rating: {liked_foods[rec['food']]})")
+        
+        # Priority 2: NEUTRAL foods (both rated neutral and never tried)
+        for rec in all_recommendations:
+            if rec and rec.get('food') not in disliked_foods and rec not in personalized_recommendations:
+                rec_copy = rec.copy()
+                
+                if rec.get('food') in neutral_foods:
+                    rec_copy['personalization_reason'] = f"Previously neutral (Rating: {neutral_foods[rec['food']]}/5) - worth another try!"
+                    rec_copy['food_state'] = 'neutral_tried'
+                    rec_copy['context_rating'] = neutral_foods[rec['food']]
+                else:
+                    rec_copy['personalization_reason'] = f"Fresh {preferred_food_type or 'food'} recommendation for your {emotion} mood!"
+                    rec_copy['food_state'] = 'neutral_new'
+                    rec_copy['context_rating'] = None
+                
+                personalized_recommendations.append(rec_copy)
+        
+        # *** CHECK IF ALL AVAILABLE OPTIONS ARE DISLIKED ***
+        if not personalized_recommendations and disliked_foods:
+            print(f"⚠️ All available options are DISLIKED for this context!")
+            
+            # Get all possible foods for this context
+            all_available_foods = get_all_available_foods_for_context(
+                emotion, meal_time, age, preferred_food_type
+            )
+            
+            print(f"Total available foods for context: {len(all_available_foods)}")
+            print(f"Currently disliked foods: {len(disliked_foods)}")
+            
+            # Check if we've disliked most available options (threshold: 80%)
+            disliked_ratio = len(disliked_foods) / max(len(all_available_foods), 1)
+            
+            if disliked_ratio >= 0.8:  # If 80% or more are disliked
+                print(f"AUTO-RESET: Disliked ratio is {disliked_ratio:.2f} (≥80%)")
+                print(f"Resetting {len(disliked_foods)} disliked foods to NEUTRAL...")
+                
+                # Reset all disliked foods to neutral by adding neutral ratings
+                reset_count = reset_disliked_foods_to_neutral(
+                    user_id, emotion, meal_time, preferred_food_type
+                )
+                
+                if reset_count > 0:
+                    # Re-analyze preferences after reset
+                    print("🔄 Re-analyzing preferences after reset...")
+                    liked_foods, neutral_foods, disliked_foods = analyze_food_preferences_by_context(
+                        user_id, emotion, meal_time, preferred_food_type
+                    )
+                    
+                    # Now all previously disliked foods should be neutral
+                    for rec in all_recommendations:
+                        if rec:
+                            rec_copy = rec.copy()
+                            rec_copy['personalization_reason'] = "Fresh start! We reset your preferences for this context."
+                            rec_copy['adaptation_note'] = f"We reset {reset_count} foods to neutral to give you fresh options."
+                            rec_copy['food_state'] = 'reset_to_neutral'
+                            rec_copy['context_reset'] = True
+                            personalized_recommendations.append(rec_copy)
+                            print(f"Added reset food: {rec.get('food')}")
+                
+            else:
+                # Not enough foods are disliked yet, try alternative strategies
+                print(f"Trying alternative strategies (disliked ratio: {disliked_ratio:.2f} < 80%)")
+                
+                # Strategy 1: Expand food type
+                if preferred_food_type:
+                    print("Strategy 1: Expanding beyond preferred food type...")
+                    alt_recs = get_food_recommendations(
+                        emotion, 
+                        date.today() - timedelta(days=age*365), 
+                        meal_time=meal_time, 
+                        food_type=None  # Remove food type restriction
+                    )
+                    
+                    if 'recommendation' in alt_recs and alt_recs['status'] == 'success':
+                        new_rec = alt_recs.get('recommendation')
+                        if new_rec and new_rec.get('food') not in disliked_foods:
+                            new_rec_copy = new_rec.copy()
+                            new_rec_copy['personalization_reason'] = f"Trying beyond {preferred_food_type} foods for variety!"
+                            new_rec_copy['adaptation_note'] = f"Expanded beyond {preferred_food_type} since you've tried most options."
+                            new_rec_copy['food_state'] = 'expanded_type'
+                            personalized_recommendations.append(new_rec_copy)
+                            print(f"Found expanded food type: {new_rec.get('food')} ({new_rec.get('type')})")
+                
+                # Strategy 2: Try different meal times
+                if not personalized_recommendations:
+                    print("Strategy 2: Trying different meal times...")
+                    alternative_meal_types = [mt for mt in SUPPORTED_MEAL_TYPES if mt != meal_time]
+                    
+                    for alt_meal_type in alternative_meal_types:
+                        alt_recs = get_food_recommendations(
+                            emotion, 
+                            date.today() - timedelta(days=age*365), 
+                            meal_time=alt_meal_type, 
+                            food_type=preferred_food_type
+                        )
+                        
+                        if 'recommendation' in alt_recs and alt_recs['status'] == 'success':
+                            new_rec = alt_recs.get('recommendation')
+                            if new_rec and new_rec.get('food') not in disliked_foods:
+                                new_rec_copy = new_rec.copy()
+                                new_rec_copy['personalization_reason'] = f"This {alt_meal_type} food matches your {emotion} mood!"
+                                new_rec_copy['adaptation_note'] = f"Trying {alt_meal_type} options for variety."
+                                new_rec_copy['food_state'] = 'different_meal_time'
+                                personalized_recommendations.append(new_rec_copy)
+                                print(f"Found different meal time: {new_rec.get('food')} ({alt_meal_type})")
+                                break
+        
+        # Final fallback: Use least disliked foods if nothing else works
+        if not personalized_recommendations and disliked_foods:
+            print("Final fallback: Using least disliked foods...")
+            
+            # Sort disliked foods by rating (highest rating among disliked)
+            sorted_disliked = sorted(disliked_foods.items(), key=lambda x: x[1], reverse=True)
+            
+            for food, rating in sorted_disliked[:2]:
+                for rec in all_recommendations:
+                    if rec and rec.get('food') == food:
+                        rec_copy = rec.copy()
+                        rec_copy['personalization_reason'] = f"Your best option among tried foods (Rating: {rating}/5)"
+                        rec_copy['adaptation_note'] = "This was your highest-rated option. Rate again to help us learn!"
+                        rec_copy['food_state'] = 'least_disliked'
+                        rec_copy['context_rating'] = rating
+                        personalized_recommendations.append(rec_copy)
+                        print(f"Added least disliked: {food} (rating: {rating})")
+                        break
+        
+        # Absolute last resort
+        if not personalized_recommendations and recommendation:
+            rec_copy = recommendation.copy()
+            rec_copy['personalization_reason'] = "New recommendation - help us learn your preferences!"
+            rec_copy['adaptation_note'] = "Building your preference profile for this context."
+            rec_copy['food_state'] = 'fallback'
+            personalized_recommendations.append(rec_copy)
+            print(f"Added fallback: {recommendation.get('food')}")
+        
+        # Ensure we have recommendations
+        if not personalized_recommendations:
+            return {
+                "error": "Unable to find suitable recommendations",
+                "status": "error"
+            }
+        
+        # Get priority nutrients
+        priority_nutrients = EMOTION_PRIORITY_NUTRIENTS.get(emotion.lower(), [])
+        
+        # Check if any adaptations were made
+        adapted = any('adaptation_note' in rec for rec in personalized_recommendations)
+        context_reset = any('context_reset' in rec for rec in personalized_recommendations)
+        
+        print(f"  Returning {len(personalized_recommendations)} personalized recommendations")
+        print(f"   Adapted: {adapted}, Context Reset: {context_reset}")
+        
         return {
-            "error": "No recommendations available after filtering",
+            'status': 'success',
+            'recommendation': personalized_recommendations[0],
+            'alternatives': personalized_recommendations[1:4] if len(personalized_recommendations) > 1 else [],
+            'priority_nutrients': priority_nutrients,
+            'adapted': adapted,
+            'context_reset': context_reset,
+            'personalization_applied': True,
+            'context': f"{emotion}-{meal_time}-{preferred_food_type or 'Any'}",
+            'preference_summary': {
+                'liked_count': len(liked_foods),
+                'neutral_count': len(neutral_foods), 
+                'disliked_count': len(disliked_foods)
+            }
+        }
+        
+    except Exception as e:
+        print(f" Error in simplified personalized recommendation: {e}")
+        import traceback
+        traceback.print_exc()
+        return {
+            "error": f"Failed to generate personalized recommendations: {str(e)}",
             "status": "error"
         }
-    
-    # Filter and reorder based on user preferences
-    adjusted_recommendations = []
-    
-    # First add liked foods that are in recommendations
-    for rec in all_recommendations:
-        if rec.get('food') in liked_foods:
-            adjusted_recommendations.append(rec)
-    
-    # Then add other recommendations that are not disliked
-    for rec in all_recommendations:
-        if rec.get('food') not in disliked_foods and rec not in adjusted_recommendations:
-            adjusted_recommendations.append(rec)
-    
-    # Check if all foods are disliked
-    if not adjusted_recommendations:
-        return {
-            "error": "All potential recommendations have been disliked by user",
-            "status": "error",
-            "disliked_foods": disliked_foods
-        }
-    
-    # Get priority nutrients directly
-    if emotion not in EMOTION_PRIORITY_NUTRIENTS:
-        return {
-            "error": f"Priority nutrients not defined for emotion: {emotion}",
-            "status": "error"
-        }
-    
-    priority_nutrients = EMOTION_PRIORITY_NUTRIENTS[emotion]
-    
-    return {
-        'status': 'success',
-        'recommendation': adjusted_recommendations[0],
-        'alternatives': adjusted_recommendations[1:4] if len(adjusted_recommendations) > 1 else [],
-        'priority_nutrients': priority_nutrients
-    }

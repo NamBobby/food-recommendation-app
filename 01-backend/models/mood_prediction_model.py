@@ -11,7 +11,6 @@ model = AutoModelForImageClassification.from_pretrained("dima806/facial_emotions
 EMOTION_LABELS = ["angry", "disgust", "fear", "happy", "neutral", "sad", "surprise"]
 
 def predict_emotion(image_bytes):
-    """Nhận ảnh dưới dạng bytes và trả về cảm xúc dự đoán."""
     try:
         image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
 

@@ -132,9 +132,15 @@ def get_food_types():
         "food_types": food_types
     })
 
+# Optional enhancement for /recommend-food endpoint in api/routes.py
+# You can keep the current version or use this enhanced one
+
 @food_api.route("/recommend-food", methods=["POST"])
 def recommend_food():
-    """API returns food recommendations based on emotion and user info without saving to database"""
+    """
+    API returns context-aware food recommendations with simplified state logic.
+    Shows food states (liked/neutral/disliked) and provides rich context information.
+    """
     user = get_user_from_request_token()
     
     if not user:
@@ -154,38 +160,147 @@ def recommend_food():
         return jsonify({"error": "Meal time is required"}), 400
     
     try:
-        # Get recommendations from model
-        recommendations = get_food_recommendations(
-            emotion=emotion,
-            birth_date=user.date_of_birth,
-            user_id=user.id,
-            meal_time=meal_time,
-            food_type=food_type
+        # Calculate user age
+        today = date.today()
+        age = today.year - user.date_of_birth.year - ((today.month, today.day) < (user.date_of_birth.month, user.date_of_birth.day))
+        
+        # Import helper functions
+        from models.food_recommendation_model import (
+            log_recommendation_context, 
+            predict_user_satisfaction,
+            get_user_context_statistics
         )
         
-        # Get recommendation
-        recommendation = recommendations.get("recommendation")
+        # Get context statistics before recommendation
+        context_stats = get_user_context_statistics(user.id, emotion, meal_time, food_type)
         
-        # Get priority nutrients for the emotion
-        from models.food_recommendation_model import EMOTION_PRIORITY_NUTRIENTS
-        priority_nutrients = EMOTION_PRIORITY_NUTRIENTS.get(emotion.lower(), [])
+        # *** SIMPLIFIED STATE-AWARE PERSONALIZATION ***
+        personalized_result = personalized_recommendation(
+            user_id=user.id,
+            emotion=emotion,
+            age=age,
+            meal_time=meal_time,
+            preferred_food_type=food_type
+        )
         
-        # Return structured response without creating a log entry
+        # Check if personalized recommendation was successful
+        if personalized_result.get("status") == "success":
+            print(f"Using simplified state-aware recommendations for user {user.id}")
+            
+            # Get recommendation and alternatives from personalized result
+            recommendation = personalized_result.get("recommendation")
+            alternatives = personalized_result.get("alternatives", [])
+            priority_nutrients = personalized_result.get("priority_nutrients", [])
+            adapted = personalized_result.get("adapted", False)
+            context_reset = personalized_result.get("context_reset", False)
+            preference_summary = personalized_result.get("preference_summary", {})
+            
+            # Predict user satisfaction
+            if recommendation:
+                satisfaction_prediction = predict_user_satisfaction(
+                    user.id, emotion, meal_time, food_type, recommendation.get('food')
+                )
+                recommendation['predicted_satisfaction'] = round(satisfaction_prediction, 2)
+            
+            # Log recommendation context with enhanced info
+            log_recommendation_context(
+                user.id, emotion, meal_time, food_type, 
+                recommendation.get('food') if recommendation else 'None',
+                {
+                    'adapted': adapted,
+                    'context_reset': context_reset,
+                    'food_state': recommendation.get('food_state', 'unknown') if recommendation else 'none',
+                    'preference_summary': preference_summary,
+                    'total_context_ratings': context_stats['total_ratings'],
+                    'context_avg_rating': context_stats['avg_rating']
+                }
+            )
+            
+        else:
+            print(f"Falling back to base recommendations for user {user.id}: {personalized_result.get('error', 'Unknown error')}")
+            
+            # Fall back to base recommendations if personalized fails
+            base_recommendations = get_food_recommendations(
+                emotion=emotion,
+                birth_date=user.date_of_birth,
+                user_id=user.id,
+                meal_time=meal_time,
+                food_type=food_type
+            )
+            
+            if base_recommendations.get("status") == "error":
+                return jsonify(base_recommendations), 400
+            
+            recommendation = base_recommendations.get("recommendation")
+            alternatives = base_recommendations.get("alternatives", [])
+            priority_nutrients = base_recommendations.get("priority_nutrients", [])
+            adapted = False
+            context_reset = False
+            preference_summary = {'liked_count': 0, 'neutral_count': 0, 'disliked_count': 0}
+            
+            # Add default values for base recommendations
+            if recommendation:
+                recommendation['predicted_satisfaction'] = 0.5  # Neutral for base recommendations
+                recommendation['food_state'] = 'base_recommendation'
+                recommendation['personalization_reason'] = 'Base recommendation - help us learn your preferences!'
+        
+        # Ensure we have a valid recommendation
+        if not recommendation:
+            return jsonify({
+                "error": "No suitable recommendations found",
+                "status": "error"
+            }), 400
+        
+        # Enhanced response with state information
         response = {
             "status": "success",
             "user_name": user.name,
             "recommendation": recommendation,
+            "alternatives": alternatives,
             "priority_nutrients": priority_nutrients,
-            "user_id": user.id,  
-            "emotion": emotion,  
-            "meal_time": meal_time,  
-            "food_type": food_type if food_type else ""  
+            "user_id": user.id,
+            "emotion": emotion,
+            "meal_time": meal_time,
+            "food_type": food_type if food_type else "",
+            
+            # Personalization info
+            "personalized": True,
+            "adapted": adapted,
+            "context_reset": context_reset,
+            
+            # Enhanced context information
+            "context_info": {
+                "context_key": f"{emotion}-{meal_time}-{food_type or 'Any'}",
+                "total_ratings_in_context": context_stats['total_ratings'],
+                "unique_foods_tried": context_stats['unique_foods'],
+                "average_rating_in_context": round(context_stats['avg_rating'], 2) if context_stats['avg_rating'] > 0 else 0,
+                "rating_distribution": context_stats['rating_distribution'],
+                "state_distribution": context_stats.get('state_distribution', {'liked': 0, 'neutral': 0, 'disliked': 0})
+            },
+            
+            # User preference summary for this context
+            "preference_summary": {
+                "liked_foods_count": preference_summary.get('liked_count', 0),
+                "neutral_foods_count": preference_summary.get('neutral_count', 0), 
+                "disliked_foods_count": preference_summary.get('disliked_count', 0),
+                "total_foods_tried": preference_summary.get('liked_count', 0) + preference_summary.get('neutral_count', 0) + preference_summary.get('disliked_count', 0)
+            },
+            
+            # Explanation for user
+            "explanation": {
+                "personalization_reason": recommendation.get('personalization_reason', 'Recommendation based on your preferences'),
+                "food_state": recommendation.get('food_state', 'unknown'),
+                "adaptation_note": recommendation.get('adaptation_note', ''),
+                "predicted_satisfaction": recommendation.get('predicted_satisfaction', 0.5)
+            }
         }
         
         return jsonify(response)
         
     except Exception as e:
-        print(f"❌ Error getting recommendations: {e}")
+        print(f"Error getting recommendations: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": "Failed to get recommendations"}), 500
 
 @food_api.route("/select-food", methods=["POST"])

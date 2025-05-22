@@ -6,7 +6,7 @@ const HomeStyle = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#FFFFFF",
     width: '100%',
-    height: 812,
+    height: '100%',
   },
   topinfo: {
     display: "flex",
