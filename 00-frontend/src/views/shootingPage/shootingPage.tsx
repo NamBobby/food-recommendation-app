@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { View, Text, TouchableOpacity, Image, Alert } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
-import { Camera, CameraView } from "expo-camera";
+import { CameraView, useCameraPermissions } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
 import ShootingStyle from "../../styles/shootingStyle";
 import { detectEmotion } from "../../services/api";
@@ -25,38 +25,30 @@ type ShootingNavigationProp = StackNavigationProp<
 
 const Shooting: React.FC = () => {
   const navigation = useNavigation<ShootingNavigationProp>();
-  const cameraRef = useRef<CameraView | null>(null);
 
-  const [selectedFile, setSelectedFile] = useState<{
-    uri: string;
-    type?: string;
-  } | null>(null);
+  const cameraRef = useRef<CameraView>(null);
+
+  const [permission, requestPermission] = useCameraPermissions();
+
+  const [selectedFile, setSelectedFile] = useState<{ uri: string; type?: string } | null>(null);
   const [isOpenCamera, setIsOpenCamera] = useState(false);
-  const [isCameraReady, setIsCameraReady] = useState(false);
-  const [isTakingPhoto, setIsTakingPhoto] = useState(false);
-  const [cameraType, setCameraType] = useState<"front" | "back">("front");
-  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [facing, setFacing] = useState<"front" | "back">("front");
 
   useEffect(() => {
-    const requestPermissions = async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert(
-          "Permission Denied",
-          "You need to enable camera permissions in settings."
-        );
-        return;
-      }
-      setHasPermission(true);
-    };
+    if (permission && !permission.granted) requestPermission();
+  }, [permission, requestPermission]);
 
-    requestPermissions();
-  }, []);
+  const toggleCameraType = () => {
+    setFacing((prev) => (prev === "front" ? "back" : "front"));
+  };
 
   const handleTakePhoto = async () => {
-    if (!hasPermission) {
-      Alert.alert("Permission Required", "Camera access is required.");
-      return;
+    if (!permission?.granted) {
+      const res = await requestPermission();
+      if (!res.granted) {
+        Alert.alert("Permission Required", "Camera access is required.");
+        return;
+      }
     }
 
     if (!isOpenCamera) {
@@ -64,45 +56,37 @@ const Shooting: React.FC = () => {
       return;
     }
 
-    if (cameraRef.current && !isTakingPhoto) {
-      setIsTakingPhoto(true);
-      const photo = await cameraRef.current.takePictureAsync({ base64: true });
+    if (!cameraRef.current) {
+      Alert.alert("Camera Error", "Camera not ready.");
+      return;
+    }
 
-      if (!photo || !photo.base64) {
-        console.warn("⚠️ Failed to capture photo.");
-        setIsTakingPhoto(false);
-        return;
-      }
-
-      setSelectedFile({
-        uri: `data:image/jpg;base64,${photo.base64}`,
-        type: "image/jpg",
+    try {
+      const photo = await cameraRef.current.takePictureAsync({
+        quality: 0.9,
       });
 
+      setSelectedFile({ uri: photo.uri, type: "image/jpg" });
+    } catch {
+      Alert.alert("Error", "Failed to take photo.");
+    } finally {
       setIsOpenCamera(false);
-      setIsTakingPhoto(false);
     }
   };
 
   const handleChooseFromGallery = async () => {
     try {
-      let result = await ImagePicker.launchImageLibraryAsync({
+      const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [4, 3],
         quality: 1,
       });
 
       if (!result.canceled && result.assets?.length > 0) {
-        setSelectedFile({ uri: result.assets[0].uri, type: "image/jpg" });
+        setSelectedFile({ uri: result.assets[0].uri });
       }
-    } catch (error) {
-      console.error("Error selecting image from gallery:", error);
+    } catch {
+      Alert.alert("Error", "Cannot open gallery.");
     }
-  };
-
-  const toggleCameraType = () => {
-    setCameraType((prev) => (prev === "front" ? "back" : "front"));
   };
 
   const handleStartTesting = async () => {
@@ -110,51 +94,34 @@ const Shooting: React.FC = () => {
       Alert.alert("No Image", "Please take or select an image first.");
       return;
     }
-  
+
     try {
       const emotion = await detectEmotion(selectedFile.uri);
       await AsyncStorage.setItem("emotion", emotion);
-      
-      // Save the image URI to AsyncStorage so resultPage can access it
       await AsyncStorage.setItem("capturedImageUri", selectedFile.uri);
-      navigation.navigate("Result", { capturedImageUri: selectedFile.uri });
-    } catch (error) {
-      Alert.alert("Error", "Failed to detect emotion.");
-    }
-  };
 
-  const handleHome = () => {
-    navigation.navigate("Home");
+      navigation.navigate("Result", { capturedImageUri: selectedFile.uri });
+    } catch {
+      Alert.alert("Error", "Emotion detection failed.");
+    }
   };
 
   return (
     <View style={ShootingStyle.container}>
       <View style={ShootingStyle.topinfo}>
         <View style={ShootingStyle.info}>
-          <Row handleHome={handleHome} />
+          <Row handleHome={() => navigation.navigate("Home")} />
         </View>
         <View style={ShootingStyle.mainphoto}>
           <View style={ShootingStyle.content}>
             <View style={ShootingStyle.elipse2}>
               <View style={ShootingStyle.elipse}>
                 {isOpenCamera ? (
-                  <CameraView
-                    style={ShootingStyle.camera}
-                    facing={cameraType}
-                    ref={(ref) => (cameraRef.current = ref)}
-                    onCameraReady={() => setIsCameraReady(true)}
-                  />
+                  <CameraView ref={cameraRef} style={ShootingStyle.camera} facing={facing} />
                 ) : selectedFile ? (
-                  <Image
-                    source={{ uri: selectedFile.uri }}
-                    style={ShootingStyle.selectedImage}
-                  />
+                  <Image source={{ uri: selectedFile.uri }} style={ShootingStyle.selectedImage} />
                 ) : (
-                  <Image
-                    source={facescan}
-                    style={ShootingStyle.defaultImage}
-                    resizeMode="cover"
-                  />
+                  <Image source={facescan} style={ShootingStyle.defaultImage} resizeMode="cover" />
                 )}
               </View>
             </View>
@@ -165,37 +132,23 @@ const Shooting: React.FC = () => {
       <View style={ShootingStyle.bottominfo}>
         <View style={ShootingStyle.buttonmenu}>
           <View style={ShootingStyle.upload}>
-            <TouchableOpacity
-              onPress={handleTakePhoto}
-              style={ShootingStyle.rectangleB}
-            >
+            <TouchableOpacity onPress={handleTakePhoto} style={ShootingStyle.rectangleB}>
               <FontAwesomeIcon icon={faCamera} size={30} color="#1E1E1E" />
             </TouchableOpacity>
+
             {isOpenCamera ? (
-              <TouchableOpacity
-                onPress={toggleCameraType}
-                style={ShootingStyle.rectangleB}
-              >
-                <FontAwesomeIcon
-                  icon={faCameraRotate}
-                  size={30}
-                  color="#1E1E1E"
-                />
+              <TouchableOpacity onPress={toggleCameraType} style={ShootingStyle.rectangleB}>
+                <FontAwesomeIcon icon={faCameraRotate} size={30} color="#1E1E1E" />
               </TouchableOpacity>
             ) : (
-              <TouchableOpacity
-                onPress={handleChooseFromGallery}
-                style={ShootingStyle.rectangleB}
-              >
+              <TouchableOpacity onPress={handleChooseFromGallery} style={ShootingStyle.rectangleB}>
                 <FontAwesomeIcon icon={faImage} size={30} color="#1E1E1E" />
               </TouchableOpacity>
             )}
           </View>
+
           <View style={ShootingStyle.test}>
-            <TouchableOpacity
-              onPress={handleStartTesting}
-              style={ShootingStyle.rectangleC}
-            >
+            <TouchableOpacity onPress={handleStartTesting} style={ShootingStyle.rectangleC}>
               <Text style={ShootingStyle.testText}>Start Testing</Text>
             </TouchableOpacity>
           </View>

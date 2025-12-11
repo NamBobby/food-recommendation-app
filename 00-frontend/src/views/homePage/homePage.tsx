@@ -81,7 +81,7 @@ const Home = () => {
     } else {
       return (
         <Text style={HomeStyle.moodStatusText}>
-          You haven't checked your mood
+          You haven`t checked your mood
         </Text>
       );
     }
@@ -123,7 +123,7 @@ const Home = () => {
             <Text style={HomeStyle.textframe}>C&Y</Text>
           </View>
           <Text style={HomeStyle.moodText}>
-            Track your daily mood to {'\n'} know today's taste
+            Track your daily mood to {'\n'} know today`s taste
           </Text>
         </View>
         

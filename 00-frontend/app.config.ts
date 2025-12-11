@@ -41,7 +41,7 @@ const config: ExpoConfig = {
     typedRoutes: true
   },
   extra: {
-    API_URL: process.env.API_URL
+    API_URL: process.env.API_URL ?? "http://192.168.1.134:5002"
   }
 };
 

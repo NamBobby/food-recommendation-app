@@ -25,11 +25,11 @@ apiClient.interceptors.request.use(
 // Log all responses in development mode
 apiClient.interceptors.response.use(
   (response) => {
-    console.log(`✅ [${response.config.method?.toUpperCase()}] ${response.config.url}: ${response.status}`);
+    console.log(` [${response.config.method?.toUpperCase()}] ${response.config.url}: ${response.status}`);
     return response;
   },
   (error) => {
-    console.error(`❌ [${error.config?.method?.toUpperCase()}] ${error.config?.url}: ${error.response?.status} - ${error.response?.data?.error || error.message}`);
+    console.error(` [${error.config?.method?.toUpperCase()}] ${error.config?.url}: ${error.response?.status} - ${error.response?.data?.error || error.message}`);
     return Promise.reject(error);
   }
 );
@@ -50,7 +50,7 @@ export const fetchAvailableNutrients = async () => {
       return [];
     }
   } catch (error) {
-    console.error("❌ Error fetching available nutrients:", error);
+    console.error(" Error fetching available nutrients:", error);
     return [];
   }
 }
@@ -76,10 +76,10 @@ export const registerUser = async (name: string, email: string, password: string
       month,
       year,
     });
-    console.log("✅ Register API Success:", response.data);
+    console.log(" Register API Success:", response.data);
     return response.data;
   } catch (error: any) {
-    console.error("❌ Register API Error:", error.response?.data || error.message);
+    console.error(" Register API Error:", error.response?.data || error.message);
     throw error;
   }
 };
@@ -95,7 +95,7 @@ export const loginUser = async (email: string, password: string) => {
     
     return response.data;
   } catch (error: any) {
-    console.error("❌ Login API Error:", error.response?.data || error.message);
+    console.error(" Login API Error:", error.response?.data || error.message);
     throw error;
   }
 };
@@ -124,7 +124,7 @@ export const detectEmotion = async (imageUri: string) => {
       throw new Error(data.error || "Failed to process image.");
     }
   } catch (error) {
-    console.error("❌ Error sending image:", error);
+    console.error(" Error sending image:", error);
     throw error;
   }
 };
@@ -141,7 +141,7 @@ export const getFoodRecommendations = async (emotion: string, mealTime: string, 
     
     return response.data;
   } catch (error: any) {
-    console.error("❌ Recommendation API Error:", error.response?.data || error.message);
+    console.error(" Recommendation API Error:", error.response?.data || error.message);
     throw error;
   }
 };
@@ -156,7 +156,7 @@ export const getFoodExplanation = async (recommendation: any, emotion: string) =
     
     return response.data.explanation;
   } catch (error: any) {
-    console.error("❌ Explanation API Error:", error.response?.data || error.message);
+    console.error(" Explanation API Error:", error.response?.data || error.message);
     throw error;
   }
 };
@@ -172,7 +172,7 @@ export const selectFood = async (logId: number, chosenFood: string, compatibilit
     
     return response.data;
   } catch (error: any) {
-    console.error("❌ Food Selection API Error:", error.response?.data || error.message);
+    console.error(" Food Selection API Error:", error.response?.data || error.message);
     throw error;
   }
 };
@@ -196,7 +196,7 @@ export const rateFood = async (
     
     return response.data;
   } catch (error: any) {
-    console.error("❌ Food Rating API Error:", error.response?.data || error.message);
+    console.error(" Food Rating API Error:", error.response?.data || error.message);
     throw error;
   }
 };
@@ -207,7 +207,7 @@ export const getUserFoodLogs = async () => {
     const response = await apiClient.get("/api/food/get-user-logs");
     return response.data;
   } catch (error: any) {
-    console.error("❌ Food Logs API Error:", error.response?.data || error.message);
+    console.error(" Food Logs API Error:", error.response?.data || error.message);
     throw error;
   }
 };
